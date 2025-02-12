@@ -18,13 +18,14 @@ function redirect($path) {
     exit();
 }
 
-function get_user_by_id($id) {
-    $db = new Database();
-    $conn = $db->getConnection();
+function get_user_role($user_id) {
+    $database = new Database();
+    $pdo = $database->getConnection();
     
-    $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE id = ?");
-    $stmt->execute([$id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['role'] : null;
 }
 
 function validate_password($password) {
@@ -33,4 +34,8 @@ function validate_password($password) {
         && preg_match('/[A-Z]/', $password) 
         && preg_match('/[a-z]/', $password) 
         && preg_match('/[0-9]/', $password);
+}
+
+function is_admin() {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }

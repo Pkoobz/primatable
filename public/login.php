@@ -10,7 +10,7 @@ $pdo = $database->getConnection();
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
-    
+    // admin pass = Admin@123
     $errors = [];
     
     if (empty($username) || empty($password)) {
@@ -21,21 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($user && password_verify($password, $user['password'])) {
-            // Set session variables
+        if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            
-            // Record login session
-            $token = bin2hex(random_bytes(32));
-            $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
-            
-            $stmt = $pdo->prepare("INSERT INTO user_sessions (user_id, session_token, expires_at) VALUES (?, ?, ?)");
-            $stmt->execute([$user['id'], $token, $expires]);
-            
-            // Redirect to dashboard
-            header("Location: index.php");
-            exit();
+            $_SESSION['user_role'] = $user['role'];
+            redirect('./public/index.php');
         } else {
             $errors[] = "Invalid username or password";
         }
