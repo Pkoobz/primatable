@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $database = new Database();
         $pdo = $database->getConnection();
         
-        $stmt = $pdo->prepare("INSERT INTO prima_data (biller, created_by, updated_by) VALUES (?, ?, ?)");
-        $result = $stmt->execute([$biller_name, $_SESSION['user_id'], $_SESSION['user_id']]);
+        $stmt = $pdo->prepare("INSERT INTO billers (name, created_by) VALUES (?, ?)");
+        $result = $stmt->execute([$biller_name, $_SESSION['user_id']]);
         
         if ($result) {
             echo json_encode(['success' => true, 'message' => 'Biller added successfully']);

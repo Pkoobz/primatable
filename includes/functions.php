@@ -39,3 +39,23 @@ function validate_password($password) {
 function is_admin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
+
+function log_activity($pdo, $action_type, $table_name, $record_id, $old_data = null, $new_data = null, $notes = null) {
+    try {
+        $stmt = $pdo->prepare("INSERT INTO activity_logs (user_id, action_type, table_name, record_id, old_data, new_data, notes) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?)");
+        
+        return $stmt->execute([
+            $_SESSION['user_id'],
+            $action_type,
+            $table_name,
+            $record_id,
+            $old_data ? json_encode($old_data) : null,
+            $new_data ? json_encode($new_data) : null,
+            $notes
+        ]);
+    } catch (PDOException $e) {
+        error_log("Error logging activity: " . $e->getMessage());
+        return false;
+    }
+}
