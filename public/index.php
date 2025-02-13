@@ -2,6 +2,7 @@
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/database.php';
+include '../includes/nav.php';
 
 if (!is_logged_in()) {
     redirect('login.php');
@@ -126,22 +127,6 @@ $statuses = [
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
 </head>
 <body class="bg-gray-100">
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between">
-                <div class="flex space-x-7">
-                    <div class="flex items-center py-4">
-                        <img src="assets/images/primacom-logo.png" alt="Logo" class="h-8 w-auto">
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span class="text-gray-700">Welcome, <?php echo htmlspecialchars($user['username'] ?? 'Guest'); ?></span>
-                    <a href="logout.php" class="py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded">Logout</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-    
     <div class="container mx-auto px-4 py-8">
         <?php if ($is_admin): ?>
             <div class="mb-6" x-data="{ showBankModal: false, showBillerModal: false, showSpecModal: false, showConnectionModal: false }">
@@ -467,6 +452,22 @@ $statuses = [
             </div>  
     </div>
     <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown-menu');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#user-menu-button') && !e.target.closest('#dropdown-menu')) {
+                    const dropdown = document.getElementById('dropdown-menu');
+                    if (dropdown && !dropdown.classList.contains('hidden')) {
+                        dropdown.classList.add('hidden');
+                    }
+                }
+            });
+        }
         function submitForm(formElement) {
         // Check if this is the filter form
             if (formElement.id === 'filterForm') {

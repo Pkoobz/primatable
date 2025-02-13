@@ -21,11 +21,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (password_verify($password, $user['password'])) {
+        // Check if user exists and verify password
+        if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['user_role'] = $user['role'];
-            redirect('./public/index.php');
+            redirect('./public/index.php'); // Fixed redirect path
         } else {
             $errors[] = "Invalid username or password";
         }
@@ -91,23 +92,11 @@ unset($_SESSION['success']);
                     </button>
                 </div>
                 
-                <div class="flex items-center justify-between">
-                    <a class="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
-                       href="forgot-password.php">
-                        Forgot Password?
-                    </a>
-                    <a class="inline-block align-baseline font-bold text-sm text-blue-600 hover:text-blue-800"
-                       href="register.php">
+                <div class="flex items-center justify-between mb-6">
+                    <a href="register.php" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full text-center">
                         Sign Up
                     </a>
-                </div>
-
-                <div class="mt-4">
-                    <button type="button" 
-                            class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        <img src="https://www.google.com/favicon.ico" alt="Google" class="w-4 h-4 mr-2">
-                        Sign in with Google
-                    </button>
                 </div>
             </form>
         </div>

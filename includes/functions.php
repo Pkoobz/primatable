@@ -28,14 +28,6 @@ function get_user_role($user_id) {
     return $result ? $result['role'] : null;
 }
 
-function validate_password($password) {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-    return strlen($password) >= 8 
-        && preg_match('/[A-Z]/', $password) 
-        && preg_match('/[a-z]/', $password) 
-        && preg_match('/[0-9]/', $password);
-}
-
 function is_admin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
