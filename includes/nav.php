@@ -6,7 +6,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="flex-shrink-0 flex items-center">
-                    <img src="assets/images/primacom-logo.png" alt="Primacom" class="h-8 w-auto">
+                    <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" alt="Primacom" class="h-8 w-auto">
                 </div>
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                     <a href="index.php" 
@@ -54,7 +54,6 @@ function toggleDropdown() {
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('#user-menu-button') && !e.target.closest('#dropdown-menu')) {
-            const dropdown = document.getElementById('dropdown-menu');
             if (dropdown && !dropdown.classList.contains('hidden')) {
                 dropdown.classList.add('hidden');
             }
