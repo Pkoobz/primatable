@@ -10,7 +10,6 @@ $pdo = $database->getConnection();
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
-    // admin pass = Admin@123
     $errors = [];
     
     if (empty($username) || empty($password)) {

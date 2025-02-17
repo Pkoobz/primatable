@@ -99,9 +99,9 @@ CREATE TABLE `prima_data` (
     FOREIGN KEY (updated_by) REFERENCES users(id)
 );
 
-
 INSERT INTO users (username, email, password, role) VALUES 
-('admin', 'admin@primacom.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+('admin', 'admin@primacom.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
+ON DUPLICATE KEY UPDATE password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
 
 INSERT INTO banks (name, created_by) VALUES 
 ('Bank Mandiri', 1),
