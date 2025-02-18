@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-2xl font-bold mb-6">Edit Connection</h2>
             
-            <form method="POST" class="space-y-6">
+            <form id="editConnectionForm" method="POST" class="space-y-6">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank</label>
@@ -163,26 +163,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank Spec</label>
-                        <select name="bank_spec_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <?php foreach ($specs as $spec): ?>
-                                <option value="<?php echo $spec['id']; ?>"
-                                    <?php echo $spec['id'] == $connection['bank_spec_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($spec['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <input type="text" 
+                            id="bank_spec_display" 
+                            value="<?php echo htmlspecialchars($connection['bank_spec_name']); ?>" 
+                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
+                            readonly>
+                        <input type="hidden" 
+                            name="bank_spec_id" 
+                            id="bank_spec_id" 
+                            value="<?php echo $connection['bank_spec_id']; ?>">
                     </div>
-                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Biller Spec</label>
-                        <select name="biller_spec_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <?php foreach ($specs as $spec): ?>
-                                <option value="<?php echo $spec['id']; ?>"
-                                    <?php echo $spec['id'] == $connection['biller_spec_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($spec['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <input type="text" 
+                            id="biller_spec_display" 
+                            value="<?php echo htmlspecialchars($connection['biller_spec_name']); ?>" 
+                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
+                            readonly>
+                        <input type="hidden" 
+                            name="biller_spec_id" 
+                            id="biller_spec_id" 
+                            value="<?php echo $connection['biller_spec_id']; ?>">
                     </div>
                 </div>
 
@@ -314,6 +315,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 isSubmitting = false;
                 submitButton.disabled = false;
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    submitForm(this);
+                };
+            }
+
+            // Initialize bank/biller specs on load if values exist
+            const bankId = document.getElementById('bank_id').value;
+            const billerId = document.getElementById('biller_id').value;
+            
+            if (bankId) fetchBankSpecs(bankId);
+            if (billerId) fetchBillerSpecs(billerId);
         });
     </script>
 </body>

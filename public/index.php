@@ -41,6 +41,10 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+$items_per_page = 10;
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($current_page - 1) * $items_per_page;
+
 if (!$user) {
     session_destroy();
     redirect('login.php');
@@ -61,7 +65,9 @@ $specs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Main query
 $sql = "SELECT pd.*, 
+        b.id as bank_id,
         b.name as bank_name,
+        bl.id as biller_id,
         bl.name as biller_name,
         bs.name as bank_spec_name,
         bls.name as biller_spec_name,
@@ -76,29 +82,49 @@ $sql = "SELECT pd.*,
         LEFT JOIN users u ON pd.created_by = u.id
         WHERE 1=1";
 
+// Before executing the main query, add this count query
+$count_sql = "SELECT COUNT(*) as total 
+              FROM prima_data pd
+              LEFT JOIN banks b ON pd.bank_id = b.id
+              LEFT JOIN billers bl ON pd.biller_id = bl.id
+              LEFT JOIN specs bs ON pd.bank_spec_id = bs.id
+              LEFT JOIN specs bls ON pd.biller_spec_id = bls.id
+              LEFT JOIN users u ON pd.created_by = u.id
+              WHERE 1=1";
+
 // Apply filters
 if ($search) {
-    $sql .= " AND (b.name LIKE :search OR bl.name LIKE :search OR bs.name LIKE :search OR bls.name LIKE :search)";
+    $filter = " AND (b.name LIKE :search OR bl.name LIKE :search OR bs.name LIKE :search OR bls.name LIKE :search)";
+    $sql .= $filter;
+    $count_sql .= $filter;
     $params[':search'] = "%$search%";
 }
 
 if ($bank_filter) {
-    $sql .= " AND b.id = :bank_id";
+    $filter = " AND b.id = :bank_id";
+    $sql .= $filter;
+    $count_sql .= $filter;
     $params[':bank_id'] = $bank_filter;
 }
 
 if ($biller_filter) {
-    $sql .= " AND bl.id = :biller_id";
+    $filter = " AND bl.id = :biller_id";
+    $sql .= $filter;
+    $count_sql .= $filter;
     $params[':biller_id'] = $biller_filter;
 }
 
 if ($spec_filter) {
-    $sql .= " AND (pd.bank_spec_id = :spec_id OR pd.biller_spec_id = :spec_id)";
+    $filter = " AND (pd.bank_spec_id = :spec_id OR pd.biller_spec_id = :spec_id)";
+    $sql .= $filter;
+    $count_sql .= $filter;
     $params[':spec_id'] = $spec_filter;
 }
 
 if ($status_filter) {
-    $sql .= " AND pd.status = :status";
+    $filter = " AND pd.status = :status";
+    $sql .= $filter;
+    $count_sql .= $filter;
     $params[':status'] = $status_filter;
 }
 
@@ -106,10 +132,27 @@ if ($status_filter) {
 $sql .= " ORDER BY " . $sort_column . " " . $sort;
 
 // Execute main query
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $pdo->prepare($count_sql);
+foreach($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+$stmt->execute();
+$total_items = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$total_pages = ceil($total_items / $items_per_page);
 
+// Then execute main query with pagination
+$sql .= " LIMIT :limit OFFSET :offset";
+$stmt = $pdo->prepare($sql);
+
+// Bind all parameters including limit and offset
+foreach($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+$stmt->bindValue(':limit', $items_per_page, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Remove duplicate status filter
 $statuses = [
     ['status' => 'active'],
@@ -153,7 +196,7 @@ $statuses = [
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_bank_ajax.php" method="POST" class="p-6" onsubmit="return false;">
+                            <form id="bankForm" action="add_bank_ajax.php" method="POST" class="p-6">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Bank</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_name">Bank Name</label>
@@ -185,7 +228,7 @@ $statuses = [
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_biller_ajax.php" method="POST" class="p-6" onsubmit="return false;">
+                            <form id="billerForm" action="add_biller_ajax.php" method="POST" class="p-6">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Biller</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_name">Biller Name</label>
@@ -218,7 +261,7 @@ $statuses = [
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_spec_ajax.php" method="POST" class="p-6" onsubmit="return false;">
+                            <form id="specForm" action="add_spec_ajax.php" method="POST" class="p-6">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Spec</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="spec_name">Spec Name</label>
@@ -240,7 +283,7 @@ $statuses = [
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_connection_ajax.php" method="POST" class="p-6" onsubmit="return false;">
+                            <form id="connectionForm" action="add_connection_ajax.php" method="POST" class="p-6">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="mb-4">
                                         <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank</label>
@@ -409,6 +452,7 @@ $statuses = [
                                     <?php endif; ?>
                                 </a>
                             </th>
+                            <th class="py-3 px-6 text-center">Bank ID</th>
                             <th class="py-3 px-6 text-left">
                                 <a href="?sort_by=biller&sort=<?php echo $sort_by == 'biller' && $sort == 'asc' ? 'desc' : 'asc'; ?>" class="flex items-center">
                                     Biller
@@ -417,6 +461,7 @@ $statuses = [
                                     <?php endif; ?>
                                 </a>
                             </th>
+                            <th class="py-3 px-6 text-center">Biller ID</th>
                             <th class="py-3 px-6 text-left">
                                 <a href="?sort_by=spec&sort=<?php echo $sort_by == 'spec' && $sort == 'asc' ? 'desc' : 'asc'; ?>" class="flex items-center">
                                     Spec
@@ -436,9 +481,11 @@ $statuses = [
                         <?php if (!empty($result)): ?>
                             <?php foreach ($result as $row): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                    <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
-                                    <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
-                                    <td class="py-3 px-6 text-left">
+                                <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
+                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
+                                <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
+                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['biller_id']); ?></td>
+                                <td class="py-3 px-6 text-left">
                                         Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
                                         Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
                                     </td>
@@ -469,6 +516,68 @@ $statuses = [
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <?php if ($total_pages > 1): ?>
+                    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-lg shadow">
+                        <div class="flex flex-1 justify-between sm:hidden">
+                            <?php if ($current_page > 1): ?>
+                                <a href="?page=<?php echo $current_page - 1; ?>" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            <?php endif; ?>
+                            <?php if ($current_page < $total_pages): ?>
+                                <a href="?page=<?php echo $current_page + 1; ?>" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    Next
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing
+                                    <span class="font-medium"><?php echo $offset + 1; ?></span>
+                                    to
+                                    <span class="font-medium"><?php echo min($offset + $items_per_page, $total_items); ?></span>
+                                    of
+                                    <span class="font-medium"><?php echo $total_items; ?></span>
+                                    results
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                    <?php if ($current_page > 1): ?>
+                                        <a href="?page=<?php echo $current_page - 1; ?>&<?php echo http_build_query(array_merge($_GET, ['page' => ($current_page - 1)])); ?>" 
+                                        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                            <span class="sr-only">Previous</span>
+                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <?php
+                                    $range = 2;
+                                    for ($i = max(1, $current_page - $range); $i <= min($total_pages, $current_page + $range); $i++):
+                                    ?>
+                                        <a href="?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>" 
+                                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <?php echo $i === $current_page ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'; ?>">
+                                            <?php echo $i; ?>
+                                        </a>
+                                    <?php endfor; ?>
+
+                                    <?php if ($current_page < $total_pages): ?>
+                                        <a href="?page=<?php echo $current_page + 1; ?>&<?php echo http_build_query(array_merge($_GET, ['page' => ($current_page + 1)])); ?>" 
+                                        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                            <span class="sr-only">Next</span>
+                                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    <?php endif; ?>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>  
     </div>
     <script>
@@ -568,17 +677,31 @@ $statuses = [
         // Filter functions
         function resetFilters() {
             const form = document.getElementById('filterForm');
-            form.reset();
+            // Clear all inputs except page related ones
+            form.querySelectorAll('input, select').forEach(element => {
+                if (!['sort_by', 'sort'].includes(element.name)) {
+                    if (element.type === 'text') {
+                        element.value = '';
+                    } else if (element.tagName === 'SELECT') {
+                        element.selectedIndex = 0;
+                    }
+                }
+            });
+            // Submit the form
             form.submit();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const forms = document.querySelectorAll('form[action$="_ajax.php"]');
-            forms.forEach(form => {
+            document.querySelectorAll('form[action$="_ajax.php"]').forEach(form => {
                 form.onsubmit = function(e) {
                     e.preventDefault();
                     submitForm(this);
                 };
+            });
+
+            // Initialize modal backdrop handlers
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                backdrop.onclick = closeModals;
             });
         });
 
@@ -599,6 +722,12 @@ $statuses = [
             setTimeout(() => {
                 notification.classList.add('hidden');
             }, 3000);
+        }
+
+        function updateQueryStringParameter(key, value) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set(key, value);
+            return '?' + urlParams.toString();
         }
     </script>
 </body>
