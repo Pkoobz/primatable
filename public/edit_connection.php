@@ -37,6 +37,7 @@ $specs = $pdo->query("SELECT * FROM specs ORDER BY name")->fetchAll(PDO::FETCH_A
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
     $bank_id = $_POST['bank_id'] ?? '';
     $biller_id = $_POST['biller_id'] ?? '';
     $bank_spec_id = $_POST['bank_spec_id'] ?? '';
@@ -83,39 +84,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         if ($result) {
-            // Log the update activity with more detailed notes
-            $changes = [];
-            if ($old_data['bank_id'] != $bank_id) $changes[] = "bank";
-            if ($old_data['biller_id'] != $biller_id) $changes[] = "biller";
-            if ($old_data['bank_spec_id'] != $bank_spec_id) $changes[] = "bank spec";
-            if ($old_data['biller_spec_id'] != $biller_spec_id) $changes[] = "biller spec";
-            if ($old_data['status'] != $status) $changes[] = "status";
-            if ($old_data['notes'] != $notes) $changes[] = "notes";
-            
-            $log_notes = empty($notes) ? "No notes added" : $notes;
-            
+            // Log the update activity
             if (!empty(trim($notes))) {
                 log_activity($pdo, 'update', 'prima_data', $id, $old_data, $new_data, $notes);
             }
-            // Add success message
-            $success_message = "Changes saved successfully!";
             
-            // Refresh the connection data instead of redirecting
-            $stmt = $pdo->prepare("SELECT pd.*, b.name as bank_name, bl.name as biller_name, 
-                bs.name as bank_spec_name, bls.name as biller_spec_name 
-                FROM prima_data pd
-                LEFT JOIN banks b ON pd.bank_id = b.id
-                LEFT JOIN billers bl ON pd.biller_id = bl.id
-                LEFT JOIN specs bs ON pd.bank_spec_id = bs.id
-                LEFT JOIN specs bls ON pd.biller_spec_id = bls.id
-                WHERE pd.id = ?");
-            $stmt->execute([$id]);
-            $connection = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Changes saved successfully!'
+            ]);
+            exit;
         } else {
-            $error = "Failed to save changes.";
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to save changes.'
+            ]);
+            exit;
         }
     } catch (PDOException $e) {
-        $error = "Error updating connection: " . $e->getMessage();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
+        exit;
     }
 }
 ?>
@@ -137,7 +128,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank</label>
-                        <select name="bank_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <select name="bank_id" 
+                                id="bank_id"
+                                onchange="fetchBankSpecs(this.value)"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
+                                required>
                             <?php foreach ($banks as $bank): ?>
                                 <option value="<?php echo $bank['id']; ?>" 
                                     <?php echo $bank['id'] == $connection['bank_id'] ? 'selected' : ''; ?>>
@@ -149,7 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Biller</label>
-                        <select name="biller_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <select name="biller_id" 
+                                id="biller_id"
+                                onchange="fetchBillerSpecs(this.value)"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
+                                required>
                             <?php foreach ($billers as $biller): ?>
                                 <option value="<?php echo $biller['id']; ?>"
                                     <?php echo $biller['id'] == $connection['biller_id'] ? 'selected' : ''; ?>>
@@ -163,27 +162,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank Spec</label>
-                        <input type="text" 
-                            id="bank_spec_display" 
-                            value="<?php echo htmlspecialchars($connection['bank_spec_name']); ?>" 
-                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
-                            readonly>
-                        <input type="hidden" 
-                            name="bank_spec_id" 
-                            id="bank_spec_id" 
-                            value="<?php echo $connection['bank_spec_id']; ?>">
+                        <select name="bank_spec_id" id="bank_spec_id" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                            <?php foreach ($specs as $spec): ?>
+                                <option value="<?php echo $spec['id']; ?>" 
+                                    <?php echo $spec['id'] == $connection['bank_spec_id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($spec['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Biller Spec</label>
-                        <input type="text" 
-                            id="biller_spec_display" 
-                            value="<?php echo htmlspecialchars($connection['biller_spec_name']); ?>" 
-                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
-                            readonly>
-                        <input type="hidden" 
-                            name="biller_spec_id" 
-                            id="biller_spec_id" 
-                            value="<?php echo $connection['biller_spec_id']; ?>">
+                        <select name="biller_spec_id" id="biller_spec_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                            <?php foreach ($specs as $spec): ?>
+                                <option value="<?php echo $spec['id']; ?>"
+                                    <?php echo $spec['id'] == $connection['biller_spec_id'] ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($spec['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
 
@@ -256,6 +255,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     <script>
+        function showNotification(message, type = 'success') {
+            alert(message); // Simple alert for now, you can replace with a better UI notification
+        }
+
         function deleteConnection(id) {
             if (confirm('Are you sure you want to delete this connection? This action cannot be undone.')) {
                 fetch('delete_connection.php', {
@@ -296,16 +299,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.text())
-            .then(html => {
-                // Clear the notes input
-                document.getElementById('notesInput').value = '';
-                
-                // Show success message
-                alert('Changes saved successfully!');
-                
-                // Refresh the page to show updated notes
-                location.reload();
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update last saved specs
+                    const bankSpecSelect = document.getElementById('bank_spec_id');
+                    const billerSpecSelect = document.getElementById('biller_spec_id');
+                    sessionStorage.setItem('last_bank_spec', bankSpecSelect.value);
+                    sessionStorage.setItem('last_biller_spec', billerSpecSelect.value);
+                    
+                    showNotification(data.message, 'success');
+                    document.getElementById('notesInput').value = '';
+                } else {
+                    showNotification(data.message || 'Error saving changes', 'error');
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -318,20 +325,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            if (form) {
-                form.onsubmit = function(e) {
-                    e.preventDefault();
-                    submitForm(this);
-                };
-            }
-
-            // Initialize bank/biller specs on load if values exist
-            const bankId = document.getElementById('bank_id').value;
-            const billerId = document.getElementById('biller_id').value;
+            const bankSelect = document.getElementById('bank_id');
+            const billerSelect = document.getElementById('biller_id');
+            const bankSpecSelect = document.getElementById('bank_spec_id');
+            const billerSpecSelect = document.getElementById('biller_spec_id');
             
-            if (bankId) fetchBankSpecs(bankId);
-            if (billerId) fetchBillerSpecs(billerId);
+            // Store initial specs when page loads
+            const currentBankSpec = bankSpecSelect.value;
+            const currentBillerSpec = billerSpecSelect.value;
+            
+            // Store these as the "last saved" values
+            sessionStorage.setItem('last_bank_spec', currentBankSpec);
+            sessionStorage.setItem('last_biller_spec', currentBillerSpec);
+            
+            // Update specs when bank/biller changes
+            bankSelect.addEventListener('change', function() {
+                const lastSavedSpec = sessionStorage.getItem('last_bank_spec');
+                if (bankSpecSelect.value === lastSavedSpec) {
+                    // Only fetch new spec if we haven't manually changed it
+                    fetchBankSpecs(this.value);
+                } else {
+                    // Ask user if they want to update
+                    if (confirm('Would you like to update to the bank\'s default spec?')) {
+                        fetchBankSpecs(this.value);
+                    }
+                }
+            });
+            
+            billerSelect.addEventListener('change', function() {
+                const lastSavedSpec = sessionStorage.getItem('last_biller_spec');
+                if (billerSpecSelect.value === lastSavedSpec) {
+                    // Only fetch new spec if we haven't manually changed it
+                    fetchBillerSpecs(this.value);
+                } else {
+                    // Ask user if they want to update
+                    if (confirm('Would you like to update to the biller\'s default spec?')) {
+                        fetchBillerSpecs(this.value);
+                    }
+                }
+            });
+        });
+
+        function fetchBankSpecs(bankId) {
+            if (!bankId) return;
+            
+            const manualChange = sessionStorage.getItem('bank_spec_manual_change');
+            if (manualChange === 'true') {
+                // Ask user if they want to update to bank's default spec
+                if (confirm('Would you like to update to the bank\'s default spec?')) {
+                    sessionStorage.removeItem('bank_spec_manual_change');
+                } else {
+                    return;
+                }
+            }
+            
+            fetch(`get_specs.php?bank_id=${bankId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('bank_spec_id').value = data.spec_id;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function fetchBillerSpecs(billerId) {
+            if (!billerId) return;
+            
+            const manualChange = sessionStorage.getItem('biller_spec_manual_change');
+            if (manualChange === 'true') {
+                // Ask user if they want to update to biller's default spec
+                if (confirm('Would you like to update to the biller\'s default spec?')) {
+                    sessionStorage.removeItem('biller_spec_manual_change');
+                } else {
+                    return;
+                }
+            }
+            
+            fetch(`get_specs.php?biller_id=${billerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('biller_spec_id').value = data.spec_id;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.getElementById('bank_spec_id').addEventListener('change', function() {
+            sessionStorage.setItem('bank_spec_manual_change', 'true');
+        });
+
+        document.getElementById('biller_spec_id').addEventListener('change', function() {
+            sessionStorage.setItem('biller_spec_manual_change', 'true');
         });
     </script>
 </body>
