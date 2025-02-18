@@ -124,40 +124,54 @@ $statuses = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo SITE_NAME; ?> - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
 </head>
 <body class="bg-gray-100">
+    <div id="notification" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+            <span id="notification-message"></span>
+        </div>
+    </div>
     <div class="container mx-auto px-4 py-8">
         <?php if ($is_admin): ?>
-            <div class="mb-6" x-data="{ showBankModal: false, showBillerModal: false, showSpecModal: false, showConnectionModal: false }">
-                <button @click="showBankModal = true" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                    Add Bank
-                </button>
-                <button @click="showBillerModal = true" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                    Add Biller
-                </button>
-                <button @click="showSpecModal = true" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                    Add Spec
-                </button>
-                <button @click="showConnectionModal = true" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                    Add Connection
-                </button>
+            <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="bank">
+                Add Bank
+            </button>
+            <button onclick="toggleModal('Biller')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="biller">
+                Add Biller
+            </button>
+            <button onclick="toggleModal('Spec')" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="spec">
+                Add Spec
+            </button>
+            <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
+                Add Connection
+            </button>
 
                 <!-- Bank Modal -->
-                <div x-show="showBankModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                <div id="bankModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
                     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 transition-opacity" @click="showBankModal = false">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_bank_ajax.php" method="POST" class="p-6">
+                            <form action="add_bank_ajax.php" method="POST" class="p-6" onsubmit="return false;">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Bank</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_name">Bank Name</label>
                                     <input type="text" name="bank_name" id="bank_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                                 </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_spec">Bank Spec</label>
+                                    <select name="bank_spec" id="bank_spec" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                        <option value="">Select Spec</option>
+                                        <?php foreach ($specs as $spec): ?>
+                                        <option value="<?php echo $spec['id']; ?>">
+                                            <?php echo htmlspecialchars($spec['name']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                                 <div class="flex justify-end">
-                                    <button type="button" @click="showBankModal = false" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                                    <button type="button" onclick="closeModals()" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
                                     <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Save</button>
                                 </div>
                             </form>
@@ -165,20 +179,31 @@ $statuses = [
                     </div>
                 </div>
                 <!-- Biller Modal -->
-                <div x-show="showBillerModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                <div id="billerModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
                     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 transition-opacity" @click="showBillerModal = false">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_biller_ajax.php" method="POST" class="p-6">
+                            <form action="add_biller_ajax.php" method="POST" class="p-6" onsubmit="return false;">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Biller</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_name">Biller Name</label>
                                     <input type="text" name="biller_name" id="biller_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                                 </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_spec">Biller Spec</label>
+                                    <select name="biller_spec" id="biller_spec" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                        <option value="">Select Spec</option>
+                                        <?php foreach ($specs as $spec): ?>
+                                        <option value="<?php echo $spec['id']; ?>">
+                                            <?php echo htmlspecialchars($spec['name']); ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                                 <div class="flex justify-end">
-                                    <button type="button" @click="showBillerModal = false" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                                <button type="button" onclick="closeModals()" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
                                     <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700">Save</button>
                                 </div>
                             </form>
@@ -187,20 +212,20 @@ $statuses = [
                 </div>
 
                 <!-- Spec Modal -->
-                <div x-show="showSpecModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                <div id="specModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
                     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 transition-opacity" @click="showSpecModal = false">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_spec_ajax.php" method="POST" class="p-6">
+                            <form action="add_spec_ajax.php" method="POST" class="p-6" onsubmit="return false;">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Spec</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="spec_name">Spec Name</label>
                                     <input type="text" name="spec_name" id="spec_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                                 </div>
                                 <div class="flex justify-end">
-                                    <button type="button" @click="showSpecModal = false" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                                <button type="button" onclick="closeModals()" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
                                     <button type="submit" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700">Save</button>
                                 </div>
                             </form>
@@ -209,64 +234,59 @@ $statuses = [
                 </div>
 
                 <!-- Connection Modal -->
-                <div x-show="showConnectionModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+                <div id="connectionModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
                     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 transition-opacity" @click="showConnectionModal = false">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form action="add_connection_ajax.php" method="POST" class="p-6">
-                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Connection</h3>
-                                <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank</label>
-                                    <select name="bank_id" id="bank_id" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                        <option value="">Select Bank</option>
-                                        <?php foreach ($banks as $bank): ?>
-                                            <option value="<?php echo $bank['id']; ?>">
-                                                <?php echo htmlspecialchars($bank['name']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_id">Biller</label>
-                                    <select name="biller_id" id="biller_id" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                        <option value="">Select Biller</option>
-                                        <?php foreach ($billers as $biller): ?>
-                                            <option value="<?php echo $biller['id']; ?>">
-                                                <?php echo htmlspecialchars($biller['name']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <!-- Replace the spec selection part in the Connection Modal -->
+                            <form action="add_connection_ajax.php" method="POST" class="p-6" onsubmit="return false;">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="mb-4">
-                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_spec_id">Bank Spec</label>
-                                        <select name="bank_spec_id" id="bank_spec_id" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                            <option value="">Select Bank Spec</option>
-                                            <?php 
-                                            $sql = "SELECT * FROM specs ORDER BY name " . ($sort_by == 'spec' ? $sort : 'ASC');
-                                            $stmt = $pdo->query($sql);
-                                            $specs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                            foreach ($specs as $spec): 
-                                            ?>
-                                            <option value="<?php echo $spec['id']; ?>">
-                                                <?php echo htmlspecialchars($spec['name']); ?>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank</label>
+                                        <select name="bank_id" id="bank_id" 
+                                                onchange="fetchBankSpecs(this.value)"
+                                                class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                                required>
+                                            <option value="">Select Bank</option>
+                                            <?php foreach ($banks as $bank): ?>
+                                            <option value="<?php echo $bank['id']; ?>">
+                                                <?php echo htmlspecialchars($bank['name']); ?>
                                             </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_spec_id">Biller Spec</label>
-                                        <select name="biller_spec_id" id="biller_spec_id" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                                            <option value="">Select Biller Spec</option>
-                                            <?php foreach ($specs as $spec): ?>
-                                            <option value="<?php echo $spec['id']; ?>">
-                                                <?php echo htmlspecialchars($spec['name']); ?>
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Bank Spec</label>
+                                        <input type="text" 
+                                            id="bank_spec_display" 
+                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
+                                            readonly>
+                                        <input type="hidden" name="bank_spec_id" id="bank_spec_id">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_id">Biller</label>
+                                        <select name="biller_id" id="biller_id" 
+                                                onchange="fetchBillerSpecs(this.value)"
+                                                class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                                required>
+                                            <option value="">Select Biller</option>
+                                            <?php foreach ($billers as $biller): ?>
+                                            <option value="<?php echo $biller['id']; ?>">
+                                                <?php echo htmlspecialchars($biller['name']); ?>
                                             </option>
                                             <?php endforeach; ?>
                                         </select>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Biller Spec</label>
+                                        <input type="text" 
+                                            id="biller_spec_display" 
+                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" 
+                                            readonly>
+                                        <input type="hidden" name="biller_spec_id" id="biller_spec_id">
                                     </div>
                                 </div>
                                 <div class="mb-4">
@@ -281,7 +301,7 @@ $statuses = [
                                     </select>
                                 </div>
                                 <div class="flex justify-end">
-                                    <button type="button" @click="showConnectionModal = false" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                                    <button type="button" onclick="closeModals()" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
                                     <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Save</button>
                                 </div>
                             </form>
@@ -452,87 +472,134 @@ $statuses = [
             </div>  
     </div>
     <script>
-        function toggleDropdown() {
-            const dropdown = document.getElementById('dropdown-menu');
-            if (dropdown) {
-                dropdown.classList.toggle('hidden');
-            }
+        // Add at the bottom of your script section
+        const state = {
+            selectedBank: null,
+            selectedBiller: null,
+            bankSpecs: {},
+            billerSpecs: {}
+        };
 
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('#user-menu-button') && !e.target.closest('#dropdown-menu')) {
-                    const dropdown = document.getElementById('dropdown-menu');
-                    if (dropdown && !dropdown.classList.contains('hidden')) {
-                        dropdown.classList.add('hidden');
-                    }
+        function toggleModal(modalType) {
+            const modal = document.getElementById(`${modalType.toLowerCase()}Modal`);
+            if (modal) {
+                closeModals();
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        function closeModals() {
+            // Target all modals by their IDs
+            const modals = [
+                'bankModal',
+                'billerModal',
+                'specModal',
+                'connectionModal'
+            ];
+            
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('hidden');
                 }
             });
         }
-        function submitForm(formElement) {
-        // Check if this is the filter form
-            if (formElement.id === 'filterForm') {
-                // Allow normal form submission for filters
-                return true;
-            }
 
-            // For modal forms (add bank, biller, spec, connection)
-            const formData = new FormData(formElement);
+        function fetchBankSpecs(bankId) {
+            if (!bankId) {
+                document.getElementById('bank_spec_display').value = '';
+                document.getElementById('bank_spec_id').value = '';
+                return;
+            }
+            fetch(`get_specs.php?bank_id=${bankId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('bank_spec_display').value = data.spec_name;
+                        document.getElementById('bank_spec_id').value = data.spec_id;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function fetchBillerSpecs(billerId) {
+            if (!billerId) {
+                document.getElementById('biller_spec_display').value = '';
+                document.getElementById('biller_spec_id').value = '';
+                return;
+            }
+            fetch(`get_specs.php?biller_id=${billerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('biller_spec_display').value = data.spec_name;
+                        document.getElementById('biller_spec_id').value = data.spec_id;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function submitForm(form) {
+            const formData = new FormData(form);
             
-            fetch(formElement.action, {
+            fetch(form.action, {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    closeModals();
+                    showNotification(data.message || 'Successfully added!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                 } else {
-                    alert(data.message);
+                    showNotification(data.message || 'An error occurred', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while saving the data');
+                showNotification('An error occurred', 'error');
             });
-
             return false;
         }
 
-        // Initialize form handlers
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                if (!submitForm(this)) {
-                    e.preventDefault();
-                }
-            });
-        });
-
+        // Filter functions
         function resetFilters() {
-            document.getElementById('search').value = '';
-            document.getElementById('bank_filter').value = '';
-            document.getElementById('biller_filter').value = '';
-            document.getElementById('spec_filter').value = '';
-            document.getElementById('status_filter').value = '';
-            document.getElementById('filterForm').submit();
+            const form = document.getElementById('filterForm');
+            form.reset();
+            form.submit();
         }
 
-        // Preserve filters when sorting
-        document.querySelectorAll('th a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const currentUrl = new URL(this.href);
-                const searchParams = new URLSearchParams(window.location.search);
-                
-                // Preserve all current filter values
-                ['search', 'bank_filter', 'biller_filter', 'spec_filter', 'status_filter'].forEach(param => {
-                    if (searchParams.has(param)) {
-                        currentUrl.searchParams.set(param, searchParams.get(param));
-                    }
-                });
-                
-                window.location.href = currentUrl.toString();
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form[action$="_ajax.php"]');
+            forms.forEach(form => {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    submitForm(this);
+                };
             });
         });
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            // Set message and color
+            messageElement.textContent = message;
+            notification.firstElementChild.className = type === 'success' 
+                ? 'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg'
+                : 'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg';
+            
+            // Show notification
+            notification.classList.remove('hidden');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
     </script>
 </body>
 </html>

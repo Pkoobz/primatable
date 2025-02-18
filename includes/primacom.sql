@@ -17,6 +17,49 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+INSERT INTO users (username, email, password, role) VALUES 
+('admin', 'admin@primacom.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+
+CREATE TABLE `specs` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `created_by` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO specs (name, created_by) VALUES 
+('API v1.0', 1),
+('API v2.0', 1),
+('REST', 1),
+('SOAP', 1),
+('HTTP', 1),
+('JSON', 1),
+('XML', 1);
+
+CREATE TABLE `banks` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `spec_id` INT NOT NULL,
+    `created_by` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (spec_id) REFERENCES specs(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `billers` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `spec_id` INT NOT NULL,
+    `created_by` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (spec_id) REFERENCES specs(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Create password_resets table (for forgot password functionality)
 CREATE TABLE password_resets (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,33 +77,6 @@ CREATE TABLE user_sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE `banks` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `name` varchar(255) NOT NULL,
-    `created_by` INT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
-CREATE TABLE `billers` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `name` varchar(255) NOT NULL,
-    `created_by` INT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
-CREATE TABLE `specs` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `name` varchar(255) NOT NULL,
-    `created_by` INT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
 CREATE TABLE `activity_logs` (
@@ -97,34 +113,22 @@ CREATE TABLE `prima_data` (
     FOREIGN KEY (biller_spec_id) REFERENCES specs(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (updated_by) REFERENCES users(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO users (username, email, password, role) VALUES 
-('admin', 'admin@primacom.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
-ON DUPLICATE KEY UPDATE password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+INSERT INTO banks (name, spec_id, created_by) VALUES 
+('Bank Mandiri', 1, 1),  -- Using API v1.0
+('BCA', 3, 1),          -- Using REST
+('BNI', 4, 1),          -- Using SOAP
+('BRI', 2, 1),          -- Using API v2.0
+('CIMB Niaga', 5, 1);   -- Using HTTP
 
-INSERT INTO banks (name, created_by) VALUES 
-('Bank Mandiri', 1),
-('BCA', 1),
-('BNI', 1),
-('BRI', 1),
-('CIMB Niaga', 1);
-
--- Insert test billers
-INSERT INTO billers (name, created_by) VALUES 
-('PLN', 1),
-('PDAM', 1),
-('Telkomsel', 1),
-('XL Axiata', 1),
-('Indosat', 1);
-
--- Insert test specs
-INSERT INTO specs (name, created_by) VALUES 
-('API v1.0', 1),
-('API v2.0', 1),
-('REST', 1),
-('SOAP', 1),
-('HTTP', 1);
+-- Insert billers using existing specs (reusing specs from different banks)
+INSERT INTO billers (name, spec_id, created_by) VALUES 
+('PLN', 3, 1),          -- Using REST
+('PDAM', 4, 1),         -- Using SOAP
+('Telkomsel', 1, 1),    -- Using API v1.0
+('XL Axiata', 5, 1),    -- Using HTTP
+('Indosat', 2, 1);      -- Using API v2.0
 
 -- Insert test connections
 INSERT INTO prima_data (bank_id, biller_id, bank_spec_id, biller_spec_id, date_live, status, created_by, updated_by) VALUES 
