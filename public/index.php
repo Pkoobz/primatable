@@ -174,7 +174,7 @@ $statuses = [
             <span id="notification-message"></span>
         </div>
     </div>
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 ml-12">
         <?php if ($is_admin): ?>
             <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="bank">
                 Add Bank
@@ -353,7 +353,7 @@ $statuses = [
                 </div>
             </div>
         <?php endif; ?>
-            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8 ml-12 mr-12">
                 <form method="get" action="" class="space-y-4" id="filterForm">
                     <div class="grid grid-cols-6 gap-4">
                         <!-- Search Bar -->
@@ -440,7 +440,7 @@ $statuses = [
                 </form>
             </div>
             <!-- DataTable -->
-            <div class="bg-white shadow-md rounded my-6">
+            <div class="bg-white shadow-md rounded my-6 ml-12 mr-12">
                 <table class="min-w-max w-full table-auto">
                     <thead>
                         <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
