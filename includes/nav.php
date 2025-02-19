@@ -26,7 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
                             <img class="h-8 w-8 rounded-full" 
                                  src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['username']); ?>&background=random" 
                                  alt="">
-                            <span class="ml-2 text-gray-700"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                            <span class="ml-5 text-gray-700"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
                         </button>
                         <div id="dropdown-menu" 
                              class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" 
