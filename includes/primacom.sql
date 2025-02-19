@@ -82,7 +82,7 @@ CREATE TABLE user_sessions (
 CREATE TABLE `activity_logs` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `user_id` int(11) NOT NULL,
-    `action_type` enum('create','update','delete') NOT NULL,
+    `action_type` enum('create','update','delete','view','filter','sort','login','logout') NOT NULL,
     `table_name` varchar(50) NOT NULL,
     `record_id` int(11) NOT NULL,
     `old_data` JSON DEFAULT NULL,

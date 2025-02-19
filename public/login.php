@@ -22,9 +22,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         
         // Check if user exists and verify password
         if ($user && password_verify($password, $user['password'])) {
+            $session_token = bin2hex(random_bytes(32));
+            $expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+            $stmt = $pdo->prepare("INSERT INTO user_sessions (user_id, session_token, expires_at) 
+                                VALUES (?, ?, ?)");
+            $stmt->execute([$user['id'], $session_token, $expires_at]);
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['user_role'] = $user['role'];
+            $_SESSION['session_token'] = $session_token;
+
+            log_activity($pdo, 'login', 'users', $user['id'], null, [
+                'username' => $user['username']
+            ], 'User logged in successfully');
             redirect('./public/index.php'); // Fixed redirect path
         } else {
             $errors[] = "Invalid username or password";

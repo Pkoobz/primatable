@@ -51,3 +51,26 @@ function log_activity($pdo, $action_type, $table_name, $record_id, $old_data = n
         return false;
     }
 }
+
+function verify_session($pdo, $user_id, $token) {
+    $stmt = $pdo->prepare("SELECT * FROM user_sessions 
+        WHERE user_id = ? 
+        AND session_token = ? 
+        AND expires_at > NOW()");
+    $stmt->execute([$user_id, $token]);
+    return $stmt->fetch() !== false;
+}
+
+function extend_session($pdo, $user_id, $token) {
+    $new_expiry = date('Y-m-d H:i:s', strtotime('+24 hours'));
+    $stmt = $pdo->prepare("UPDATE user_sessions 
+        SET expires_at = ? 
+        WHERE user_id = ? 
+        AND session_token = ?");
+    return $stmt->execute([$new_expiry, $user_id, $token]);
+}
+
+function clean_expired_sessions($pdo) {
+    $stmt = $pdo->prepare("DELETE FROM user_sessions WHERE expires_at < NOW()");
+    return $stmt->execute();
+}

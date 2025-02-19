@@ -4,7 +4,7 @@ require_once '../includes/database.php';
 require_once '../includes/functions.php';
 
 if (!is_logged_in()) {
-    redirect('login.php');
+    redirect('./public/login.php');
 }
 
 $database = new Database();

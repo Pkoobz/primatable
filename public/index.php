@@ -5,7 +5,7 @@ require_once '../includes/database.php';
 include '../includes/nav.php';
 
 if (!is_logged_in()) {
-    redirect('login.php');
+    redirect('./public/login.php');
 }
 
 $database = new Database();
@@ -47,7 +47,7 @@ $offset = ($current_page - 1) * $items_per_page;
 
 if (!$user) {
     session_destroy();
-    redirect('login.php');
+    redirect('./public/login.php');
 }
 
 // Get filter data
