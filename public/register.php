@@ -70,9 +70,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 <body class="bg-gray-100">
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
         <!-- Left side with solid color background -->
-        <div class="hidden lg:block bg-blue-600 rounded-r-3xl">
-            <div class="flex flex-col justify-center items-center text-white p-12 h-full space-y-6">
-                <h1 class="text-4xl font-bold">Welcome to Primacom</h1>
+        <div class="hidden lg:block bg-blue-600 rounded-r-3xl rounded-lg">
+        <div class="flex flex-col justify-center items-center text-white p-12 h-full space-y-6 "style="background-image: url('https://media.discordapp.net/attachments/675608973206093834/1342022503626833951/image.png?ex=67b81f5a&is=67b6cdda&hm=d5b777b8cd591633516af406e182d66fe282425ef5a315041f76b8c757e0f87c&=&format=webp&quality=lossless&width=745&height=558'); background-size: cover;">
+
                 <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white">
                     <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" alt="Welcome Image" class="w-full h-full object-cover">
                 </div>
@@ -81,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         </div>
 
         <!-- Right side with registration form -->
-        <div class="flex items-center justify-center p-8">
+        <div class="flex items-center justify-center p-8"style="background-image: url('https://wallpapercave.com/wp/wp3616922.jpg'); background-size: cover;">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <form method="POST" action="">
                     <?php if (!empty($errors)): ?>
@@ -125,14 +125,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     </div>
                     
                     <div class="space-y-4">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full"
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full"
                                 type="submit" name="signup">
-                            Sign Up
+                            Sign Up      
                         </button>
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <a href="login.php" class="text-blue-600 hover:text-blue-700 text-sm">
+                        <a href="login.php" class="text-purple-600 hover:text-purple-700 text-sm">
                             Already have an account? Sign In
                         </a>
                     </div>

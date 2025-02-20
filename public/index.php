@@ -168,15 +168,15 @@ $statuses = [
     <title><?php echo SITE_NAME; ?> - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
+<body class="bg-blue-100">
     <div id="notification" class="fixed top-4 right-4 z-50 hidden">
         <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
             <span id="notification-message"></span>
         </div>
     </div>
-    <div class="container mx-auto px-4 py-8 ml-12">
+
         <?php if ($is_admin): ?>
-            <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="bank">
+            <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-12 ml-12 rounded inline-flex items-center mr-2" data-modal="bank">
                 Add Bank
             </button>
             <button onclick="toggleModal('Biller')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="biller">
@@ -353,7 +353,7 @@ $statuses = [
                 </div>
             </div>
         <?php endif; ?>
-            <div class="bg-white p-6 rounded-lg shadow-md mb-8 ml-12 mr-12">
+            <div class="bg-white p-6 rounded-lg shadow-md my-3 mb-8 ml-12 mr-12">
                 <form method="get" action="" class="space-y-4" id="filterForm">
                     <div class="grid grid-cols-6 gap-4">
                         <!-- Search Bar -->
@@ -478,9 +478,11 @@ $statuses = [
                         </tr>
                     </thead>
                     <tbody class="text-gray-600 text-sm font-light">
-                        <?php if (!empty($result)): ?>
-                            <?php foreach ($result as $row): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-100">
+<?php if (!empty($result)): ?>
+    <?php foreach ($result as $loop_index => $row): ?>
+
+<tr class="border-b <?php echo $loop_index % 2 == 0 ? 'border-blue-200' : 'border-gray-200'; ?> hover:bg-gray-100">
+
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
                                 <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
@@ -586,7 +588,6 @@ $statuses = [
             selectedBank: null,
             selectedBiller: null,
             bankSpecs: {},
-            billerSpecs: {}
         };
 
         function toggleModal(modalType) {

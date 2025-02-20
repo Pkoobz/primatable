@@ -7,9 +7,28 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.profile-picture {
+    margin: 0 auto;
+}
+
+.profile-form {
+    width: 100%;
+    max-width: 400px;
+}
+
+
 .form-field {
     margin-bottom: 1rem;
+    width: 100%;
 }
+
 
 .form-label {
     display: block;
