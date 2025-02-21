@@ -65,9 +65,9 @@ $specs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Main query
 $sql = "SELECT pd.*, 
-        b.id as bank_id,
         b.name as bank_name,
-        bl.id as biller_id,
+        b.bank_id as bank_id_number,
+        bl.biller_id as biller_id_number,
         bl.name as biller_name,
         bs.name as bank_spec_name,
         bls.name as biller_spec_name,
@@ -590,9 +590,9 @@ $statuses = [
                                 ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
-                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
+                                <td class="py-3 px-6 text-center font-mono text-sm"><?php echo htmlspecialchars($row['bank_id_number']); ?></td>
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
-                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['biller_id']); ?></td>
+                                <td class="py-3 px-6 text-center font-mono text-sm"><?php echo htmlspecialchars($row['biller_id_number']); ?></td>
                                 <td class="py-3 px-6 text-left">
                                     Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
                                     Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
