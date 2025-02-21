@@ -415,40 +415,40 @@ $statuses = [
                         </div>
                     </div>
                 </div>
-                <!-- details -->
-                <div id="detailsModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
-                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeDetailsModal()">
-                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-                        </div>
-                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <div class="bg-white px-6 pt-5 pb-4">
-                                <div class="flex items-start justify-between">
-                                    <h3 class="text-lg font-medium leading-6 text-gray-900" id="detailsTitle">
-                                        Connection Details
-                                    </h3>
-                                    <div class="ml-3 flex h-7">
-                                        <button type="button" 
-                                                onclick="closeDetailsModal()"
-                                                class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none">
-                                            <span class="sr-only">Close</span>
-                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
+        <?php endif; ?>
+            <!-- details -->
+            <div id="detailsModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeDetailsModal()">
+                        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    </div>
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                        <div class="bg-white px-6 pt-5 pb-4">
+                            <div class="flex items-start justify-between">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900" id="detailsTitle">
+                                    Connection Details
+                                </h3>
+                                <div class="ml-3 flex h-7">
+                                    <button type="button" 
+                                        onclick="closeDetailsModal()"
+                                            class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none">
+                                        <span class="sr-only">Close</span>
+                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
-                                <div class="mt-4">
-                                    <div id="detailsContent" class="text-sm text-gray-500">
-                                        <!-- Content will be dynamically inserted here -->
-                                    </div>
+                            </div>
+                            <div class="mt-4">
+                                <div id="detailsContent" class="text-sm text-gray-500">
+                                    <!-- Content will be dynamically inserted here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
             <div class="bg-white p-6 rounded-lg shadow-md mb-8 ml-12 mr-12">
                 <form method="get" action="" class="space-y-4" id="filterForm">
                     <div class="grid grid-cols-6 gap-4">
@@ -711,11 +711,11 @@ $statuses = [
         }
 
         function closeModals() {
-            // Target all modals by their IDs
             const modals = [
                 'bankModal',
                 'billerModal',
                 'specModal',
+                'channelModal',
                 'connectionModal'
             ];
             
@@ -761,9 +761,45 @@ $statuses = [
                 .catch(error => console.error('Error:', error));
         }
 
+        // Replace the existing submitForm function
         function submitForm(form) {
             const formData = new FormData(form);
+            let allFieldsFilled = true;
+
+            // Required fields to check
+            const requiredFields = ['bank_id', 'biller_id', 'bank_spec_id', 'biller_spec_id'];
             
+            requiredFields.forEach(field => {
+                const value = formData.get(field);
+                if (!value) {
+                    allFieldsFilled = false;
+                    document.querySelector(`[name="${field}"]`).classList.add('border-red-500');
+                }
+            });
+
+            // Check if at least one channel is selected with a date
+            const channels = form.querySelectorAll('select[name="channels[]"]');
+            const dates = form.querySelectorAll('input[name="channel_dates[]"]');
+            let hasValidChannel = false;
+
+            for (let i = 0; i < channels.length; i++) {
+                if (channels[i].value && dates[i].value) {
+                    hasValidChannel = true;
+                    break;
+                }
+            }
+
+            if (!hasValidChannel) {
+                showNotification('Please add at least one channel with a date', 'error');
+                return false;
+            }
+
+            if (!allFieldsFilled) {
+                showNotification('Please fill in all required fields', 'error');
+                return false;
+            }
+
+            // If validation passes, submit the form
             fetch(form.action, {
                 method: 'POST',
                 body: formData
@@ -772,20 +808,26 @@ $statuses = [
             .then(data => {
                 if (data.success) {
                     closeModals();
-                    showNotification(data.message || 'Successfully added!');
+                    showNotification('Connection added successfully');
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
                 } else {
-                    showNotification(data.message || 'An error occurred', 'error');
+                    showNotification(data.message || 'Error adding connection', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('An error occurred', 'error');
+                showNotification('An error occurred while saving', 'error');
             });
+
             return false;
         }
+
+        document.getElementById('connectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm(this);
+        });
 
         // Filter functions
         function resetFilters() {
@@ -844,16 +886,23 @@ $statuses = [
         }
 
         function viewDetails(primaDataId, bankName) {
+            // Show loading state
+            const detailsTitle = document.getElementById('detailsTitle');
+            const detailsContent = document.getElementById('detailsContent');
+            detailsContent.innerHTML = '<div class="text-center py-4">Loading...</div>';
+            document.getElementById('detailsModal').classList.remove('hidden');
+
             fetch(`get_channel_details.php?prima_data_id=${primaDataId}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        const detailsTitle = document.getElementById('detailsTitle');
-                        const detailsContent = document.getElementById('detailsContent');
-                        
                         detailsTitle.textContent = `Connection Details - ${bankName}`;
                         
-                        // Format the channels data with improved styling
                         let contentHtml = `
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <div class="text-sm text-gray-500 mb-4">
@@ -879,16 +928,16 @@ $statuses = [
                             `;
                         });
                         
-                        contentHtml += `
-                                </div>
-                            </div>
-                        `;
-                        
+                        contentHtml += `</div></div>`;
                         detailsContent.innerHTML = contentHtml;
-                        document.getElementById('detailsModal').classList.remove('hidden');
+                    } else {
+                        detailsContent.innerHTML = '<div class="text-center text-red-500">Error loading details</div>';
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    detailsContent.innerHTML = '<div class="text-center text-red-500">Error loading details</div>';
+                });
         }
 
         function closeDetailsModal() {
