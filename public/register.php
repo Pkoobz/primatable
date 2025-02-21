@@ -65,24 +65,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Primacom - Sign Up</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+    <style>
+        @keyframes buttonPush {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .button-push {
+            animation: buttonPush 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-        <!-- Left side with solid color background -->
-        <div class="hidden lg:block bg-blue-600 rounded-r-3xl">
-            <div class="flex flex-col justify-center items-center text-white p-12 h-full space-y-6">
-                <h1 class="text-4xl font-bold">Welcome to Primacom</h1>
-                <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white">
-                    <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" alt="Welcome Image" class="w-full h-full object-cover">
+        <!-- Left side with animated background -->
+        <div class="hidden lg:block relative overflow-hidden">
+            <div class="absolute inset-0">
+                <img src="https://media.giphy.com/media/teXdkckBJvbLW/giphy.gif" 
+                     alt="Background Animation" 
+                     class="w-full h-full object-cover">
+            </div>
+            <div class="relative flex flex-col justify-center items-center text-white p-12 h-full space-y-6 z-10">
+                <h1 class="text-4xl font-bold text-white drop-shadow-lg">Create Account</h1>
+                <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                    <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" 
+                         alt="Welcome Image" 
+                         class="w-full h-full object-cover">
                 </div>
-                <p class="text-lg text-center">Create your account and start managing your connections</p>
+                <p class="text-lg text-center text-white drop-shadow-lg">Create your account and start managing your connections</p>
             </div>
         </div>
 
         <!-- Right side with registration form -->
-        <div class="flex items-center justify-center p-8">
+        <div class="flex items-center justify-center p-8" 
+             style="background-image: url('https://wallpapercave.com/wp/wp3616922.jpg'); background-size: cover;">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+                <div class="text-center space-y-4 mb-8">    
+                    <h2 class="text-2xl font-bold text-gray-800">Create your account</h2>
+                    <p class="text-gray-600">Enter your details to continue</p>
+                </div>
+
                 <form method="POST" action="">
                     <?php if (!empty($errors)): ?>
                         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -125,14 +148,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     </div>
                     
                     <div class="space-y-4">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full"
+                        <button class="bg-gradient-to-b from-blue-600 to-purple-800 hover:from-purple-900 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full button-push"
                                 type="submit" name="signup">
-                            Sign Up
+                            Sign Up      
                         </button>
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <a href="login.php" class="text-blue-600 hover:text-blue-700 text-sm">
+                        <a href="login.php" class="text-blue-500 hover:text-blue-600 text-sm">
                             Already have an account? Sign In
                         </a>
                     </div>
@@ -140,5 +163,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const signUpBtn = document.querySelector('button[name="signup"]');
+            
+            function addButtonAnimation(element) {
+                element.addEventListener('click', function(e) {
+                    this.classList.add('button-push');
+                    setTimeout(() => {
+                        this.classList.remove('button-push');
+                    }, 300);
+                });
+            }
+
+            addButtonAnimation(signUpBtn);
+        });
+    </script>
 </body>
 </html>

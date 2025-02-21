@@ -59,10 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-gray-100">
     <?php include '../includes/nav.php'; ?>
 
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">  <!-- Changed max-w-7xl to max-w-3xl -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg max-w-2xl mx-auto">  <!-- Added max-w-2xl and mx-auto -->
             <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Settings</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Profile Settings</h3>
             </div>
 
             <?php if (!empty($errors)): ?>
@@ -80,49 +80,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <div class="border-t border-gray-200">
-                <form method="POST" class="space-y-6 p-6">
-                    <div class="grid grid-cols-1 gap-6">
-                        <div>
+                <form method="POST" class="space-y-6 p-8">  <!-- Increased padding from p-6 to p-8 -->
+                    <div class="grid grid-cols-1 gap-6 max-w-md mx-auto">  <!-- Added max-w-md and mx-auto -->
+                        <div class="text-center">  <!-- Added text-center -->
                             <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
-                            <div class="mt-2 flex items-center">
-                                <img class="h-20 w-20 rounded-full" 
+                            <div class="mt-2 flex justify-center">  <!-- Added justify-center -->
+                                <img class="h-24 w-24 rounded-full border-4 border"
                                      src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['username']); ?>&size=80&background=random" 
                                      alt="">
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Username</label>
+                        <div class="text-center">  <!-- Added text-center -->
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
                             <input type="text" 
                                    name="username" 
                                    value="<?php echo htmlspecialchars($user['username']); ?>" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <div class="text-center">  <!-- Added text-center -->
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input type="email" 
                                    name="email" 
                                    value="<?php echo htmlspecialchars($user['email']); ?>" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Current Password</label>
+                        <div class="text-center">  <!-- Added text-center -->
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                             <input type="password" 
                                    name="current_password" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">New Password</label>
+                        <div class="text-center">  <!-- Added text-center -->
+                            <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                             <input type="password" 
                                    name="new_password" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center">
                         </div>
                     </div>
 
-                    <div class="flex justify-end">
+                    <div class="flex justify-center mt-6">  <!-- Changed to justify-center -->
                         <button type="submit" 
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                             Save Changes

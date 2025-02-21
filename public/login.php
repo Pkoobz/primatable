@@ -57,24 +57,42 @@ unset($_SESSION['success']);
     <title>Primacom - Sign In</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
+    <style>
+        @keyframes buttonPush {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .button-push {
+            animation: buttonPush 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-        <!-- Left side with solid color background -->
-        <div class="hidden lg:block bg-blue-600 rounded-r-3xl">
-            <div class="flex flex-col justify-center items-center text-white p-12 h-full space-y-6">
-                <h1 class="text-4xl font-bold">Welcome Back</h1>
-                <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white">
-                    <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" alt="Welcome Image" class="w-full h-full object-cover">
+        <!-- Left side with animated background -->
+        <div class="hidden lg:block relative overflow-hidden">
+            <div class="absolute inset-0">
+                <img src="https://media.giphy.com/media/teXdkckBJvbLW/giphy.gif" 
+                     alt="Background Animation" 
+                     class="w-full h-full object-cover">
+            </div>
+            <div class="relative flex flex-col justify-center items-center text-white p-12 h-full space-y-6 z-10">
+                <h1 class="text-4xl font-bold text-white drop-shadow-lg">𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐜𝐤</h1>
+                <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                    <img src="https://th.bing.com/th/id/OIP.oU2fh5ahpbiPxz7TUWulxAHaHa?rs=1&pid=ImgDetMain" 
+                         alt="Welcome Image" 
+                         class="w-full h-full object-cover">
                 </div>
-                <p class="text-lg text-center">Manage your connections and billing with ease</p>
+                <p class="text-lg text-center text-white drop-shadow-lg">Manage you connection and billing with ease</p>
             </div>
         </div>
 
         <!-- Right side with login form --> 
-        <div class="flex items-center justify-center p-8">
+        <div class="flex items-center justify-center p-8"style="background-image: url('https://wallpapercave.com/wp/wp3616922.jpg'); background-size: cover;">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <div class="text-center space-y-4 mb-8">
+                <div class="text-center space-y-4 mb-8">    
                     <h2 class="text-2xl font-bold">Sign in to your account</h2>
                     <p class="text-gray-600">Enter your credentials to continue</p>
                 </div>
@@ -111,25 +129,42 @@ unset($_SESSION['success']);
                     </div>
                     
                     <div class="space-y-4">
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full"
+                        <!-- Sign In Button -->
+                        <button class="bg-gradient-to-b from-blue-600 to-purple-800 hover:from-purple-900 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full button-push"
                                 type="submit" name="signin">
                             Sign In
                         </button>
                     </div>
                     
                     <div class="mt-4">
+                        <!-- Create Account Button -->
                         <a href="register.php" 
-                        class="bg-gray-100 hover:bg-gray-600 text-gray-700 font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full block text-center">
+                           class="bg-gray-100 hover:bg-gray-600 text-gray-700 font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline w-full block text-center button-push">
                             Create new account
                         </a>
                     </div>
 
-                    <div class="mt-6 text-center">
-                        <a href="#" class="text-blue-600 hover:text-blue-700 text-sm">Forgot password?</a>
-                    </div>
                 </form>
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const signInBtn = document.querySelector('button[name="signin"]');
+            const createAccountBtn = document.querySelector('a[href="register.php"]');
+
+            function addButtonAnimation(element) {
+                element.addEventListener('click', function(e) {
+                    this.classList.add('button-push');
+                    setTimeout(() => {
+                        this.classList.remove('button-push');
+                    }, 300);
+                });
+            }
+
+            addButtonAnimation(signInBtn);
+            addButtonAnimation(createAccountBtn);
+        });
+    </script>
 </body>
 </html>
