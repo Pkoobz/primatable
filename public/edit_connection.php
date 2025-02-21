@@ -38,74 +38,49 @@ $specs = $pdo->query("SELECT * FROM specs ORDER BY name")->fetchAll(PDO::FETCH_A
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
-    $bank_id = $_POST['bank_id'] ?? '';
-    $biller_id = $_POST['biller_id'] ?? '';
-    $bank_spec_id = $_POST['bank_spec_id'] ?? '';
-    $biller_spec_id = $_POST['biller_spec_id'] ?? '';
-    $date_live = $_POST['date_live'] ?? '';
-    $status = $_POST['status'] ?? '';
-    $notes = $_POST['notes'] ?? '';
-
+    
     try {
-        $old_data = $connection;
+        $pdo->beginTransaction();
+        
+        // Update status
+        $stmt = $pdo->prepare("UPDATE prima_data SET status = ?, updated_by = ? WHERE id = ?");
+        $stmt->execute([$_POST['status'], $_SESSION['user_id'], $id]);
 
-        $stmt = $pdo->prepare("UPDATE prima_data SET 
-            bank_id = ?, 
-            biller_id = ?, 
-            bank_spec_id = ?,
-            biller_spec_id = ?,
-            date_live = ?,
-            status = ?,
-            notes = ?,
-            updated_by = ?
-            WHERE id = ?");
+        // Update channels
+        $stmt = $pdo->prepare("DELETE FROM connection_channels WHERE prima_data_id = ?");
+        $stmt->execute([$id]);
 
-        $new_data = [
-            'bank_id' => $bank_id,
-            'biller_id' => $biller_id,
-            'bank_spec_id' => $bank_spec_id,
-            'biller_spec_id' => $biller_spec_id,
-            'date_live' => $date_live,
-            'status' => $status,
-            'notes' => $notes,
-            'updated_by' => $_SESSION['user_id']
-        ];
+        $channels = $_POST['channels'];
+        $dates = $_POST['channel_dates'];
 
-        $result = $stmt->execute([
-            $bank_id, 
-            $biller_id, 
-            $bank_spec_id, 
-            $biller_spec_id,
-            $date_live,
-            $status,
-            $notes,
-            $_SESSION['user_id'],
-            $id
-        ]);
+        $stmt = $pdo->prepare("INSERT INTO connection_channels 
+            (prima_data_id, channel_id, date_live, created_by, updated_by) 
+            VALUES (?, ?, ?, ?, ?)");
 
-        if ($result) {
-            // Log the update activity
-            if (!empty(trim($notes))) {
-                log_activity($pdo, 'update', 'prima_data', $id, $old_data, $new_data, $notes);
-            }
-            
-            echo json_encode([
-                'success' => true,
-                'message' => 'Changes saved successfully!'
+        for ($i = 0; $i < count($channels); $i++) {
+            $stmt->execute([
+                $id,
+                $channels[$i],
+                $dates[$i],
+                $_SESSION['user_id'],
+                $_SESSION['user_id']
             ]);
-            exit;
-        } else {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Failed to save changes.'
-            ]);
-            exit;
         }
-    } catch (PDOException $e) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Database error: ' . $e->getMessage()
-        ]);
+
+        // Log the update
+        log_activity($pdo, 'update', 'prima_data', $id, 
+            ['status' => $connection['status']], 
+            ['status' => $_POST['status']], 
+            $_POST['notes'] ?? null
+        );
+
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => 'Changes saved successfully']);
+        exit;
+
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         exit;
     }
 }
@@ -125,81 +100,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h2 class="text-2xl font-bold mb-6">Edit Connection</h2>
             
             <form id="editConnectionForm" method="POST" class="space-y-6">
+                <!-- Display-only fields -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank</label>
-                        <select name="bank_id" 
-                                id="bank_id"
-                                onchange="fetchBankSpecs(this.value)"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
-                                required>
-                            <?php foreach ($banks as $bank): ?>
-                                <option value="<?php echo $bank['id']; ?>" 
-                                    <?php echo $bank['id'] == $connection['bank_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($bank['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="mt-1 p-2 bg-gray-50 rounded-md">
+                            <?php echo htmlspecialchars($connection['bank_name']); ?>
+                        </div>
                     </div>
-                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Biller</label>
-                        <select name="biller_id" 
-                                id="biller_id"
-                                onchange="fetchBillerSpecs(this.value)"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" 
-                                required>
-                            <?php foreach ($billers as $biller): ?>
-                                <option value="<?php echo $biller['id']; ?>"
-                                    <?php echo $biller['id'] == $connection['biller_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($biller['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="mt-1 p-2 bg-gray-50 rounded-md">
+                            <?php echo htmlspecialchars($connection['biller_name']); ?>
+                        </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Bank Spec</label>
-                        <select name="bank_spec_id" id="bank_spec_id" 
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <?php foreach ($specs as $spec): ?>
-                                <option value="<?php echo $spec['id']; ?>" 
-                                    <?php echo $spec['id'] == $connection['bank_spec_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($spec['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="mt-1 p-2 bg-gray-50 rounded-md">
+                            <?php echo htmlspecialchars($connection['bank_spec_name']); ?>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Biller Spec</label>
-                        <select name="biller_spec_id" id="biller_spec_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <?php foreach ($specs as $spec): ?>
-                                <option value="<?php echo $spec['id']; ?>"
-                                    <?php echo $spec['id'] == $connection['biller_spec_id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($spec['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="mt-1 p-2 bg-gray-50 rounded-md">
+                            <?php echo htmlspecialchars($connection['biller_spec_name']); ?>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Date Live</label>
-                        <input type="date" name="date_live" value="<?php echo $connection['date_live']; ?>" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                <!-- Editable fields -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <option value="active" <?php echo $connection['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
+                        <option value="inactive" <?php echo $connection['status'] == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Channels Section -->
+                <div class="mt-6">
+                    <h4 class="text-lg font-medium text-gray-700 mb-4">Channels</h4>
+                    <div id="channelContainer" class="space-y-4">
+                        <?php
+                        // Get existing channels
+                        $stmt = $pdo->prepare("
+                            SELECT cc.*, ch.name as channel_name 
+                            FROM connection_channels cc
+                            JOIN channels ch ON cc.channel_id = ch.id
+                            WHERE cc.prima_data_id = ?
+                            ORDER BY cc.date_live
+                        ");
+                        $stmt->execute([$id]);
+                        $existing_channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        // Get all available channels
+                        $stmt = $pdo->query("SELECT * FROM channels ORDER BY name");
+                        $all_channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        foreach ($existing_channels as $channel): ?>
+                            <div class="channel-entry bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <select name="channels[]" class="w-full rounded-md border-gray-300 shadow-sm mr-2">
+                                            <?php foreach ($all_channels as $ch): ?>
+                                                <option value="<?php echo $ch['id']; ?>" 
+                                                    <?php echo $ch['id'] == $channel['channel_id'] ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($ch['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="flex-1 ml-2">
+                                        <input type="date" name="channel_dates[]" 
+                                            value="<?php echo $channel['date_live']; ?>"
+                                            class="w-full rounded-md border-gray-300 shadow-sm" 
+                                            required>
+                                    </div>
+                                    <button type="button" onclick="removeChannel(this)" 
+                                            class="ml-2 text-red-600 hover:text-red-800">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Status</label>
-                        <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <option value="active" <?php echo $connection['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
-                            <option value="inactive" <?php echo $connection['status'] == 'inactive' ? 'selected' : ''; ?>>Inactive</option>
-                        </select>
-                    </div>
+                    <button type="button" onclick="addChannel()" 
+                            class="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Add Channel
+                    </button>
                 </div>
 
                 <div>
@@ -256,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <script>
         function showNotification(message, type = 'success') {
-            alert(message); // Simple alert for now, you can replace with a better UI notification
+            alert(message); // Simple alert for now
         }
 
         function deleteConnection(id) {
@@ -283,14 +276,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        let isSubmitting = false;
+        function addChannel() {
+            const container = document.getElementById('channelContainer');
+            const template = `
+                <div class="channel-entry bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <select name="channels[]" class="w-full rounded-md border-gray-300 shadow-sm mr-2">
+                                <?php foreach ($all_channels as $ch): ?>
+                                    <option value="<?php echo $ch['id']; ?>">
+                                        <?php echo htmlspecialchars($ch['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="flex-1 ml-2">
+                            <input type="date" name="channel_dates[]" 
+                                class="w-full rounded-md border-gray-300 shadow-sm" 
+                                required>
+                        </div>
+                        <button type="button" onclick="removeChannel(this)" 
+                                class="ml-2 text-red-600 hover:text-red-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+        }
 
-        document.querySelector('form').addEventListener('submit', function(e) {
+        function removeChannel(button) {
+            const container = document.getElementById('channelContainer');
+            if (container.children.length > 1) {
+                button.closest('.channel-entry').remove();
+            } else {
+                alert('At least one channel is required');
+            }
+        }
+
+        // Form submission handler
+        document.getElementById('editConnectionForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            if (isSubmitting) return;
-            isSubmitting = true;
-            
             const formData = new FormData(this);
             const submitButton = this.querySelector('button[type="submit"]');
             submitButton.disabled = true;
@@ -302,14 +330,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update last saved specs
-                    const bankSpecSelect = document.getElementById('bank_spec_id');
-                    const billerSpecSelect = document.getElementById('biller_spec_id');
-                    sessionStorage.setItem('last_bank_spec', bankSpecSelect.value);
-                    sessionStorage.setItem('last_biller_spec', billerSpecSelect.value);
-                    
                     showNotification(data.message, 'success');
-                    document.getElementById('notesInput').value = '';
+                    window.location.href = 'index.php';
                 } else {
                     showNotification(data.message || 'Error saving changes', 'error');
                 }
@@ -319,105 +341,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 alert('An error occurred while saving changes');
             })
             .finally(() => {
-                isSubmitting = false;
                 submitButton.disabled = false;
             });
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const bankSelect = document.getElementById('bank_id');
-            const billerSelect = document.getElementById('biller_id');
-            const bankSpecSelect = document.getElementById('bank_spec_id');
-            const billerSpecSelect = document.getElementById('biller_spec_id');
-            
-            // Store initial specs when page loads
-            const currentBankSpec = bankSpecSelect.value;
-            const currentBillerSpec = billerSpecSelect.value;
-            
-            // Store these as the "last saved" values
-            sessionStorage.setItem('last_bank_spec', currentBankSpec);
-            sessionStorage.setItem('last_biller_spec', currentBillerSpec);
-            
-            // Update specs when bank/biller changes
-            bankSelect.addEventListener('change', function() {
-                const lastSavedSpec = sessionStorage.getItem('last_bank_spec');
-                if (bankSpecSelect.value === lastSavedSpec) {
-                    // Only fetch new spec if we haven't manually changed it
-                    fetchBankSpecs(this.value);
-                } else {
-                    // Ask user if they want to update
-                    if (confirm('Would you like to update to the bank\'s default spec?')) {
-                        fetchBankSpecs(this.value);
-                    }
-                }
-            });
-            
-            billerSelect.addEventListener('change', function() {
-                const lastSavedSpec = sessionStorage.getItem('last_biller_spec');
-                if (billerSpecSelect.value === lastSavedSpec) {
-                    // Only fetch new spec if we haven't manually changed it
-                    fetchBillerSpecs(this.value);
-                } else {
-                    // Ask user if they want to update
-                    if (confirm('Would you like to update to the biller\'s default spec?')) {
-                        fetchBillerSpecs(this.value);
-                    }
-                }
-            });
-        });
-
-        function fetchBankSpecs(bankId) {
-            if (!bankId) return;
-            
-            const manualChange = sessionStorage.getItem('bank_spec_manual_change');
-            if (manualChange === 'true') {
-                // Ask user if they want to update to bank's default spec
-                if (confirm('Would you like to update to the bank\'s default spec?')) {
-                    sessionStorage.removeItem('bank_spec_manual_change');
-                } else {
-                    return;
-                }
-            }
-            
-            fetch(`get_specs.php?bank_id=${bankId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('bank_spec_id').value = data.spec_id;
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function fetchBillerSpecs(billerId) {
-            if (!billerId) return;
-            
-            const manualChange = sessionStorage.getItem('biller_spec_manual_change');
-            if (manualChange === 'true') {
-                // Ask user if they want to update to biller's default spec
-                if (confirm('Would you like to update to the biller\'s default spec?')) {
-                    sessionStorage.removeItem('biller_spec_manual_change');
-                } else {
-                    return;
-                }
-            }
-            
-            fetch(`get_specs.php?biller_id=${billerId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('biller_spec_id').value = data.spec_id;
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        document.getElementById('bank_spec_id').addEventListener('change', function() {
-            sessionStorage.setItem('bank_spec_manual_change', 'true');
-        });
-
-        document.getElementById('biller_spec_id').addEventListener('change', function() {
-            sessionStorage.setItem('biller_spec_manual_change', 'true');
         });
     </script>
 </body>
