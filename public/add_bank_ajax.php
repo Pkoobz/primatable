@@ -32,19 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $database = new Database();
         $pdo = $database->getConnection();
         
+        $bank_id = sprintf('%09d', mt_rand(1, 999999999));
         // Start transaction
         $pdo->beginTransaction();
         
         // Insert bank with spec_id
-        $stmt = $pdo->prepare("INSERT INTO banks (name, spec_id, created_by) VALUES (?, ?, ?)");
-        $result = $stmt->execute([$bank_name, $spec_id, $_SESSION['user_id']]);
+        $stmt = $pdo->prepare("INSERT INTO banks (bank_id, name, spec_id, created_by) VALUES (?, ?, ?, ?)");
+        $result = $stmt->execute([
+            $bank_id,               // First parameter is bank_id
+            $_POST['bank_name'],    // Second is name
+            $_POST['bank_spec'],    // Third is spec_id
+            $_SESSION['user_id']    // Fourth is created_by
+        ]);
         
         if ($result) {
             $pdo->commit();
             echo json_encode([
                 'success' => true, 
                 'message' => 'Bank added successfully',
-                'bank_id' => $pdo->lastInsertId()
+                'bank_id' => $bank_id
             ]);
         } else {
             $pdo->rollBack();

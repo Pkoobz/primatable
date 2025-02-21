@@ -32,19 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $database = new Database();
         $pdo = $database->getConnection();
         
+        $biller_id = sprintf('%09d', mt_rand(1, 999999999));
         // Start transaction
         $pdo->beginTransaction();
         
         // Insert biller with spec_id
-        $stmt = $pdo->prepare("INSERT INTO billers (name, spec_id, created_by) VALUES (?, ?, ?)");
-        $result = $stmt->execute([$biller_name, $spec_id, $_SESSION['user_id']]);
+        $stmt = $pdo->prepare("INSERT INTO billers (biller_id, name, spec_id, created_by) VALUES (?, ?, ?, ?)");
+        $result = $stmt->execute([
+            $biller_id,               // Use generated biller_id instead of lastInsertId
+            $_POST['biller_name'],    // Second is name
+            $_POST['biller_spec'],    // Third is spec_id
+            $_SESSION['user_id']  
+        ]);
         
         if ($result) {
             $pdo->commit();
             echo json_encode([
                 'success' => true, 
                 'message' => 'Biller added successfully',
-                'biller_id' => $pdo->lastInsertId()
+                'biller_id' => $biller_id
             ]);
         } else {
             $pdo->rollBack();

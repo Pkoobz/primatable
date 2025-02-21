@@ -203,16 +203,23 @@ $statuses = [
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Bank</h3>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_name">Bank Name</label>
-                                    <input type="text" name="bank_name" id="bank_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                    <input type="text" 
+                                        name="bank_name" 
+                                        id="bank_name" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                        required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_spec">Bank Spec</label>
-                                    <select name="bank_spec" id="bank_spec" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                    <select name="bank_spec" 
+                                            id="bank_spec" 
+                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                            required>
                                         <option value="">Select Spec</option>
                                         <?php foreach ($specs as $spec): ?>
-                                        <option value="<?php echo $spec['id']; ?>">
-                                            <?php echo htmlspecialchars($spec['name']); ?>
-                                        </option>
+                                            <option value="<?php echo $spec['id']; ?>">
+                                                <?php echo htmlspecialchars($spec['name']); ?>
+                                            </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -824,6 +831,44 @@ $statuses = [
             return false;
         }
 
+        document.querySelectorAll('#bankForm, #billerForm, #specForm, #channelForm').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+
+                console.log('Submitting form:', this.id);
+                console.log('Form data:', Object.fromEntries(formData));
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        showNotification(data.message || 'Added successfully');
+                        closeModals();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showNotification(data.message || 'Error occurred', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred', 'error');
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                });
+            });
+        });
+
         document.getElementById('connectionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             submitForm(this);
@@ -845,20 +890,6 @@ $statuses = [
             // Submit the form
             form.submit();
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('form[action$="_ajax.php"]').forEach(form => {
-                form.onsubmit = function(e) {
-                    e.preventDefault();
-                    submitForm(this);
-                };
-            });
-
-            // Initialize modal backdrop handlers
-            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                backdrop.onclick = closeModals;
-            });
-        });
 
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
