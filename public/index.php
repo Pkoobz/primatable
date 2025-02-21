@@ -185,10 +185,13 @@ $statuses = [
             <button onclick="toggleModal('Spec')" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="spec">
                 Add Spec
             </button>
+            <button onclick="toggleModal('Channel')" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="channel">
+                Add Channel
+            </button>
             <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
                 Add Connection
             </button>
-
+            
                 <!-- Bank Modal -->
                 <div id="bankModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
                     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -275,6 +278,31 @@ $statuses = [
                         </div>
                     </div>
                 </div>
+                <!-- Channel Modal -->
+                <div id="channelModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <form id="channelForm" action="add_channel_ajax.php" method="POST" class="p-6">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Channel</h3>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="channel_name">Channel Name</label>
+                                    <input type="text" name="channel_name" id="channel_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="channel_description">Description</label>
+                                    <textarea name="channel_description" id="channel_description" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="button" onclick="closeModals()" class="mr-2 px-4 py-2 text-gray-500 hover:text-gray-700">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Connection Modal -->
                 <div id="connectionModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
@@ -332,9 +360,45 @@ $statuses = [
                                         <input type="hidden" name="biller_spec_id" id="biller_spec_id">
                                     </div>
                                 </div>
-                                <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="date_live">Date Live</label>
-                                    <input type="date" name="date_live" id="date_live" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                <div class="mt-6">
+                                    <h4 class="text-lg font-medium text-gray-900 mb-4">Channels</h4>
+                                    <div id="channelContainer" class="space-y-4">
+                                        <div class="channel-entry bg-gray-50 p-4 rounded-lg">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex-1">
+                                                    <select name="channels[]" class="w-full rounded-md border-gray-300 shadow-sm mr-2">
+                                                        <option value="">Select Channel</option>
+                                                        <?php
+                                                        $stmt = $pdo->query("SELECT id, name FROM channels ORDER BY name");
+                                                        $channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                                        foreach ($channels as $channel): ?>
+                                                            <option value="<?php echo $channel['id']; ?>">
+                                                                <?php echo htmlspecialchars($channel['name']); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <div class="flex-1 ml-2">
+                                                    <input type="date" name="channel_dates[]" 
+                                                        class="w-full rounded-md border-gray-300 shadow-sm" 
+                                                        required>
+                                                </div>
+                                                <button type="button" onclick="removeChannel(this)" 
+                                                        class="ml-2 text-red-600 hover:text-red-800">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="addChannel()" 
+                                            class="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                        Add Channel
+                                    </button>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="status">Status</label>
@@ -348,6 +412,38 @@ $statuses = [
                                     <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Save</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- details -->
+                <div id="detailsModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeDetailsModal()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-6 pt-5 pb-4">
+                                <div class="flex items-start justify-between">
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900" id="detailsTitle">
+                                        Connection Details
+                                    </h3>
+                                    <div class="ml-3 flex h-7">
+                                        <button type="button" 
+                                                onclick="closeDetailsModal()"
+                                                class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none">
+                                            <span class="sr-only">Close</span>
+                                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div id="detailsContent" class="text-sm text-gray-500">
+                                        <!-- Content will be dynamically inserted here -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -470,7 +566,7 @@ $statuses = [
                                     <?php endif; ?>
                                 </a>
                             </th>
-                            <th class="py-3 px-6 text-center">Date Live</th>
+                            <th class="py-3 px-6 text-left">Details</th>
                             <th class="py-3 px-6 text-center">Status</th>
                             <?php if ($is_admin): ?>
                             <th class="py-3 px-6 text-center">Actions</th>
@@ -480,21 +576,38 @@ $statuses = [
                     <tbody class="text-gray-600 text-sm font-light">
                         <?php if (!empty($result)): ?>
                             <?php foreach ($result as $row): ?>
+                                <?php 
+                                // Get channels and their date_live for this connection
+                                $stmt = $pdo->prepare("
+                                    SELECT ch.name, cc.date_live 
+                                    FROM connection_channels cc 
+                                    JOIN channels ch ON cc.channel_id = ch.id 
+                                    WHERE cc.prima_data_id = ? 
+                                    ORDER BY cc.date_live
+                                ");
+                                $stmt->execute([$row['id']]);
+                                $channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
                                 <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
                                 <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['biller_id']); ?></td>
                                 <td class="py-3 px-6 text-left">
-                                        Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
-                                        Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
-                                    </td>
-                                    <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['date_live']); ?></td>
-                                    <td class="py-3 px-6 text-center">
-                                        <span class="<?php echo $row['status'] == 'active' ? 'bg-green-200 text-green-600' : 'bg-red-200 text-red-600'; ?> py-1 px-3 rounded-full text-xs">
-                                            <?php echo htmlspecialchars(ucfirst($row['status'])); ?>
-                                        </span>
-                                    </td>
+                                    Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
+                                    Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
+                                </td>
+                                <td class="py-3 px-6 text-left">
+                                    <a href="#" onclick="viewDetails(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['bank_name']); ?>')" 
+                                    class="text-blue-600 hover:text-blue-800">
+                                        View Details
+                                    </a>
+                                </td>
+                                <td class="py-3 px-6 text-center">
+                                    <span class="<?php echo $row['status'] == 'active' ? 'bg-green-200 text-green-600' : 'bg-red-200 text-red-600'; ?> py-1 px-3 rounded-full text-xs">
+                                           <?php echo htmlspecialchars(ucfirst($row['status'])); ?>
+                                    </span>
+                                </td>
                                     <?php if ($is_admin): ?>
                                         <td class="py-3 px-6 text-center">
                                             <div class="flex item-center justify-center">
@@ -728,6 +841,76 @@ $statuses = [
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set(key, value);
             return '?' + urlParams.toString();
+        }
+
+        function viewDetails(primaDataId, bankName) {
+            fetch(`get_channel_details.php?prima_data_id=${primaDataId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const detailsTitle = document.getElementById('detailsTitle');
+                        const detailsContent = document.getElementById('detailsContent');
+                        
+                        detailsTitle.textContent = `Connection Details - ${bankName}`;
+                        
+                        // Format the channels data with improved styling
+                        let contentHtml = `
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="text-sm text-gray-500 mb-4">
+                                    <span class="font-medium text-gray-700">Active Channels:</span> ${data.channels.length}
+                                </div>
+                                <div class="space-y-3">
+                        `;
+                        
+                        data.channels.forEach(channel => {
+                            contentHtml += `
+                                <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100 hover:border-blue-200 transition-colors">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                            <span class="font-medium text-gray-700">${channel.name}</span>
+                                        </div>
+                                        <div class="text-sm">
+                                            <span class="text-gray-400">Live since:</span>
+                                            <span class="text-gray-600 ml-1">${channel.date_live}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        contentHtml += `
+                                </div>
+                            </div>
+                        `;
+                        
+                        detailsContent.innerHTML = contentHtml;
+                        document.getElementById('detailsModal').classList.remove('hidden');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+        }
+
+        function addChannel() {
+            const container = document.getElementById('channelContainer');
+            const template = container.children[0].cloneNode(true);
+            
+            // Clear the values
+            template.querySelector('select').value = '';
+            template.querySelector('input[type="date"]').value = '';
+            
+            container.appendChild(template);
+        }
+
+        function removeChannel(button) {
+            const container = document.getElementById('channelContainer');
+            if (container.children.length > 1) {
+                button.closest('.channel-entry').remove();
+            }
         }
     </script>
 </body>

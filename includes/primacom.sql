@@ -115,6 +115,36 @@ CREATE TABLE `prima_data` (
     FOREIGN KEY (updated_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `channels` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `description` TEXT DEFAULT NULL,
+    `created_by` INT NOT NULL,
+    `updated_by` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `connection_channels` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `prima_data_id` int(11) NOT NULL,
+    `channel_id` int(11) NOT NULL,
+    `date_live` date NOT NULL,
+    `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+    `created_by` INT NOT NULL,
+    `updated_by` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (prima_data_id) REFERENCES prima_data(id),
+    FOREIGN KEY (channel_id) REFERENCES channels(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 INSERT INTO banks (name, spec_id, created_by) VALUES 
 ('Bank Mandiri', 1, 1),  -- Using API v1.0
 ('BCA', 3, 1),          -- Using REST
@@ -122,7 +152,7 @@ INSERT INTO banks (name, spec_id, created_by) VALUES
 ('BRI', 2, 1),          -- Using API v2.0
 ('CIMB Niaga', 5, 1);   -- Using HTTP
 
--- Insert billers using existing specs (reusing specs from different banks)
+-- Second, insert billers data
 INSERT INTO billers (name, spec_id, created_by) VALUES 
 ('PLN', 3, 1),          -- Using REST
 ('PDAM', 4, 1),         -- Using SOAP
@@ -130,34 +160,30 @@ INSERT INTO billers (name, spec_id, created_by) VALUES
 ('XL Axiata', 5, 1),    -- Using HTTP
 ('Indosat', 2, 1);      -- Using API v2.0
 
--- Insert test connections
 INSERT INTO prima_data (bank_id, biller_id, bank_spec_id, biller_spec_id, date_live, status, created_by, updated_by) VALUES 
-(2, 2, 3, 4, '2024-01-15', 'active', 1, 1),
-(3, 3, 4, 1, '2024-02-01', 'inactive', 1, 1),
-(4, 4, 2, 5, '2024-02-15', 'active', 1, 1),
-(5, 5, 5, 2, '2024-03-01', 'active', 1, 1),
-(1, 2, 1, 4, '2024-03-15', 'inactive', 1, 1),
-(2, 3, 3, 1, '2024-04-01', 'active', 1, 1),
-(3, 4, 4, 5, '2024-04-15', 'active', 1, 1),
-(4, 5, 2, 2, '2024-05-01', 'inactive', 1, 1),
-(5, 1, 5, 3, '2024-05-15', 'active', 1, 1),
-(1, 3, 1, 1, '2024-06-01', 'active', 1, 1),
-(2, 4, 3, 5, '2024-06-15', 'inactive', 1, 1),
-(3, 5, 4, 2, '2024-07-01', 'active', 1, 1),
-(4, 1, 2, 3, '2024-07-15', 'active', 1, 1),
-(5, 2, 5, 4, '2024-08-01', 'inactive', 1, 1),
-(1, 4, 1, 5, '2024-08-15', 'active', 1, 1),
-(2, 5, 3, 2, '2024-09-01', 'active', 1, 1),
-(3, 1, 4, 3, '2024-09-15', 'inactive', 1, 1),
-(4, 2, 2, 4, '2024-10-01', 'active', 1, 1),
-(5, 3, 5, 1, '2024-10-15', 'active', 1, 1),
-(1, 5, 1, 2, '2024-11-01', 'inactive', 1, 1),
-(2, 1, 3, 3, '2024-11-15', 'active', 1, 1),
-(3, 2, 4, 4, '2024-12-01', 'active', 1, 1),
-(4, 3, 2, 1, '2024-12-15', 'inactive', 1, 1),
-(5, 4, 5, 5, '2025-01-01', 'active', 1, 1),
-(1, 2, 1, 4, '2025-01-15', 'active', 1, 1),
-(2, 3, 3, 1, '2025-02-01', 'inactive', 1, 1),
-(3, 4, 4, 5, '2025-02-15', 'active', 1, 1),
-(4, 5, 2, 2, '2025-03-01', 'active', 1, 1),
-(5, 1, 5, 3, '2025-03-15', 'inactive', 1, 1);
+(1, 1, 1, 3, '2024-01-15', 'active', 1, 1),
+(2, 2, 3, 4, '2024-02-15', 'active', 1, 1),
+(3, 3, 4, 1, '2024-03-15', 'active', 1, 1),
+(4, 4, 2, 5, '2024-04-15', 'active', 1, 1),
+(5, 5, 5, 2, '2024-05-15', 'inactive', 1, 1);
+
+-- Fourth, insert channels data
+INSERT INTO channels (name, description, created_by, updated_by) VALUES 
+('ATM', 'Automated Teller Machine', 1, 1),
+('IB', 'Internet Banking', 1, 1),
+('MB', 'Mobile Banking', 1, 1),
+('Branch', 'Physical Bank Branch', 1, 1),
+('USSD', 'USSD Banking', 1, 1);
+
+-- Finally, insert connection_channels data
+INSERT INTO connection_channels (prima_data_id, channel_id, date_live, created_by, updated_by) VALUES 
+(1, 1, '2024-01-15', 1, 1),
+(1, 2, '2024-02-01', 1, 1),
+(2, 1, '2024-02-15', 1, 1),
+(2, 3, '2024-03-01', 1, 1),
+(3, 2, '2024-03-15', 1, 1),
+(3, 4, '2024-04-01', 1, 1),
+(4, 1, '2024-04-15', 1, 1),
+(4, 3, '2024-05-01', 1, 1),
+(5, 2, '2024-05-15', 1, 1),
+(5, 5, '2024-06-01', 1, 1);
