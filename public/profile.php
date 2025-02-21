@@ -55,14 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Primacom</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://wallpaperaccess.com/full/340434.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+    </style>
 </head>
-<body class="bg-gray-100">
+<body style="background-image: url('https://wallpaperaccess.com/full/340434.png'); background-size: cover; background-position: center;">
     <?php include '../includes/nav.php'; ?>
-
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
             <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Settings</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Profile Settings</h3>
             </div>
 
             <?php if (!empty($errors)): ?>
@@ -128,8 +138,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="flex justify-center">
                         <button type="submit" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Save Changes
+                                id="saveButton"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition duration-200 ease-in-out hover:scale-105 active:scale-95">
+                            <span class="inline-flex items-center">
+                                <span id="buttonText">Save Changes</span>
+                                <svg id="checkmark" class="hidden w-5 h-5 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -138,21 +154,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
-        function toggleDropdown() {
-            const dropdown = document.getElementById('dropdown-menu');
-            dropdown.classList.toggle('hidden');
-        }
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const container = document.getElementById('profileContainer');
+            const button = document.getElementById('saveButton');
+            const buttonText = document.getElementById('buttonText');
+            const checkmark = document.getElementById('checkmark');
+            const form = this;
 
-        // Close dropdown when clicking outside
-        window.addEventListener('click', function(e) {
-            if (!e.target.closest('#user-menu-button')) {
-                document.getElementById('dropdown-menu').classList.add('hidden');
-            }
-        });
-    </script>
-</body>
-</html>
-            }
+            // Show loading state
+            buttonText.textContent = 'Saving...';
+            button.classList.add('opacity-75', 'cursor-not-allowed');
+            container.classList.add('animate-save');
+            
+            // Submit form data using fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Show success state
+                buttonText.textContent = 'Saved!';
+                checkmark.classList.remove('hidden');
+                
+                // Reset after animation
+                setTimeout(() => {
+                    container.classList.remove('animate-save');
+                    buttonText.textContent = 'Save Changes';
+                    checkmark.classList.add('hidden');
+                    button.classList.remove('opacity-75', 'cursor-not-allowed');
+                    location.reload();
+                }, 2000);
+            })
+            .catch(error => {
+                container.classList.remove('animate-save');
+                button.classList.remove('opacity-75', 'cursor-not-allowed');
+                buttonText.textContent = 'Save Changes';
+                console.error('Error:', error);
+            });
         });
     </script>
 </body>

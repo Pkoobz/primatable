@@ -481,35 +481,34 @@ $statuses = [
 <?php if (!empty($result)): ?>
     <?php foreach ($result as $loop_index => $row): ?>
 
-<tr class="border-b <?php echo $loop_index % 2 == 0 ? 'border-blue-200' : 'border-gray-200'; ?> hover:bg-gray-100">
-
-                                <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
-                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
-                                <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
-                                <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['biller_id']); ?></td>
-                                <td class="py-3 px-6 text-left">
-                                        Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
-                                        Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
-                                    </td>
-                                    <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['date_live']); ?></td>
-                                    <td class="py-3 px-6 text-center">
-                                        <span class="<?php echo $row['status'] == 'active' ? 'bg-green-200 text-green-600' : 'bg-red-200 text-red-600'; ?> py-1 px-3 rounded-full text-xs">
-                                            <?php echo htmlspecialchars(ucfirst($row['status'])); ?>
-                                        </span>
-                                    </td>
-                                    <?php if ($is_admin): ?>
-                                        <td class="py-3 px-6 text-center">
-                                            <div class="flex item-center justify-center">
-                                                <a href="edit_connection.php?id=<?php echo $row['id']; ?>" 
-                                                    class="w-4 mr-2 transform hover:text-purple-500 hover:scale-110">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    <?php endif; ?>
-                                </tr>
+<tr class="<?php echo $loop_index % 2 == 0 ? 'bg-blue-50' : 'bg-blue-100'; ?> border-b border-gray-200 hover:bg-blue-200 transition-colors duration-150">
+    <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
+    <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['bank_id']); ?></td>
+    <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
+    <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['biller_id']); ?></td>
+    <td class="py-3 px-6 text-left">
+        Bank: <?php echo htmlspecialchars($row['bank_spec_name']); ?><br>
+        Biller: <?php echo htmlspecialchars($row['biller_spec_name']); ?>
+    </td>
+    <td class="py-3 px-6 text-center"><?php echo htmlspecialchars($row['date_live']); ?></td>
+    <td class="py-3 px-6 text-center">
+        <span class="<?php echo $row['status'] == 'active' ? 'bg-green-200 text-green-600' : 'bg-red-200 text-red-600'; ?> py-1 px-3 rounded-full text-xs">
+            <?php echo htmlspecialchars(ucfirst($row['status'])); ?>
+        </span>
+    </td>
+    <?php if ($is_admin): ?>
+        <td class="py-3 px-6 text-center">
+            <div class="flex item-center justify-center">
+                <a href="edit_connection.php?id=<?php echo $row['id']; ?>" 
+                   class="w-4 mr-2 transform hover:text-purple-500 hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                </a>
+            </div>
+        </td>
+    <?php endif; ?>
+</tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
