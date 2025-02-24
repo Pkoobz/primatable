@@ -456,7 +456,7 @@ $statuses = [
                 </div>
             </div>
         </div>
-            <div class="bg-white p-6 rounded-lg shadow-md mb-8 ml-12 mr-12">
+            <div class="bg-blue-100 p-6 rounded-lg shadow-md mb-8 ml-12 mr-12">
                 <form method="get" action="" class="space-y-4" id="filterForm">
                     <div class="grid grid-cols-6 gap-4">
                         <!-- Search Bar -->
@@ -531,9 +531,14 @@ $statuses = [
                             class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
                             Reset Filters
                         </button>
-                        <button type="submit" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                            Apply Filters
+                        <button type="submit" id="filterButton"
+                         class="relative px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center w-32">
+                        <span id="filterButtonText" class="z-10">Apply Filters</span>
+                         <div id="filterSpinner" 
+                           class="absolute inset-0 hidden rounded-md" 
+                             style="background: url('https://cdn.dribbble.com/users/660047/screenshots/2549984/loader-circle3.gif') center center no-repeat; background-color: rgba(37, 99, 235, 0.9); background-size: contain;">
+                                 </div>
+                            </button>
                         </button>
                     </div>
 
@@ -556,7 +561,7 @@ $statuses = [
             <div class="bg-white shadow-md rounded my-6 ml-12 mr-12">
                 <table class="min-w-max w-full table-auto">
                     <thead>
-                        <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                        <tr class="bg-blue-200 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-6 text-left">
                                 <a href="?sort_by=bank&sort=<?php echo $sort_by == 'bank' && $sort == 'asc' ? 'desc' : 'asc'; ?>" class="flex items-center">
                                     Bank
@@ -592,7 +597,7 @@ $statuses = [
                     </thead>
                     <tbody class="text-gray-600 text-sm font-light">
                         <?php if (!empty($result)): ?>
-                            <?php foreach ($result as $row): ?>
+                            <?php foreach ($result as $key => $row): ?>
                                 <?php 
                                 // Get channels and their date_live for this connection
                                 $stmt = $pdo->prepare("
@@ -605,7 +610,7 @@ $statuses = [
                                 $stmt->execute([$row['id']]);
                                 $channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                <tr class="border-b border-gray-200 <?php echo $key % 2 === 0 ? 'bg-blue-50' : 'bg-blue-100'; ?> hover:bg-blue-200 transition-colors duration-150">
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['bank_name']); ?></td>
                                 <td class="py-3 px-6 text-center font-mono text-sm"><?php echo htmlspecialchars($row['bank_id_number']); ?></td>
                                 <td class="py-3 px-6 text-left"><?php echo htmlspecialchars($row['biller_name']); ?></td>
@@ -711,6 +716,7 @@ $statuses = [
             </div>  
     </div>
     <script>
+        
         // Add at the bottom of your script section
         const state = {
             selectedBank: null,
@@ -1011,6 +1017,25 @@ $statuses = [
                 alert('Error exporting data: ' + error.message);
             }
         }   
+        // Add this inside your existing <script> tags
+        document.getElementById('filterForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent immediate form submission
+            
+            // Show loading state
+            const buttonText = document.getElementById('filterButtonText');
+            const spinner = document.getElementById('filterSpinner');
+            const button = document.getElementById('filterButton');
+            
+            // Disable button and show spinner
+            button.disabled = true;
+            buttonText.textContent = 'Filtering...';
+            spinner.classList.remove('hidden');
+            
+            // Wait for 1.5 seconds before submitting the form
+            setTimeout(() => {
+                this.submit(); // Submit the form after delay
+            }, 1500); // 1500ms = 1.5 seconds
+        });
     </script>
 </body>
 </html>
