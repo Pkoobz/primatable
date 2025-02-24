@@ -56,7 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Profile - Primacom</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
+<body style="background: url('https://cdn.dribbble.com/uploads/659/original/96d7c2c751f301aab76cca5c84f1639a.gif?1546644588') center center fixed; 
+             background-size: cover; 
+             background-repeat: no-repeat;">
     <?php include '../includes/nav.php'; ?>
 
     <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">  <!-- Changed max-w-7xl to max-w-3xl -->
