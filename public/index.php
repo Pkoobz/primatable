@@ -548,14 +548,21 @@ $statuses = [
                 </form>
 
                 <div class="flex space-x-2 mb-4">
-                    <button onclick="exportToExcel()" 
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Export to Excel
-                    </button>
-                </div>
+
+    <button type="button" onclick="handleExportClick()" id="exportButton"
+        class="relative bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+        <span id="exportButtonText" class="z-10 flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Export to Excel
+        </span>
+        <div id="exportSpinner" 
+            class="absolute inset-0 hidden rounded-md" 
+            style="background: url('https://th.bing.com/th/id/R.e42cb20be6939bc8590dede0a20cc6e0?rik=Z%2be10J5aE%2fbNQA&riu=http%3a%2f%2forig11.deviantart.net%2f03d6%2ff%2f2014%2f122%2f7%2fa%2floading_gif_by_zarzox-d7gwtxy.png&ehk=k6Hd%2bH5rAoGufy5%2fceZac7VuV1WDPSM%2bj9clzC5uzPo%3d&risl=&pid=ImgRaw&r=0') center center no-repeat; background-color: rgba(22, 163, 74, 0.9); background-size: contain;">
+        </div>
+    </button>
+</div>
             </div>
             <!-- DataTable -->
             <div class="bg-white shadow-md rounded my-6 ml-12 mr-12">
@@ -1036,6 +1043,52 @@ $statuses = [
                 this.submit(); // Submit the form after delay
             }, 1500); // 1500ms = 1.5 seconds
         });
+
+        // Add to your existing script section
+        function handleExportClick() {
+            const button = document.getElementById('exportButton');
+            const buttonText = document.getElementById('exportButtonText');
+            const spinner = document.getElementById('exportSpinner');
+            
+            // Show animation
+            button.disabled = true;
+            buttonText.textContent = 'Exporting...';
+            spinner.classList.remove('hidden');
+            
+            // Wait for animation before starting export
+            setTimeout(() => {
+                try {
+                    // Trigger the export
+                    exportToExcel();
+                    
+                    // Reset button state after a delay
+                    setTimeout(() => {
+                        button.disabled = false;
+                        buttonText.innerHTML = `
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export to Excel
+                        `;
+                        spinner.classList.add('hidden');
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.error('Export error:', error);
+                    alert('Error exporting data: ' + error.message);
+                    
+                    // Reset button state
+                    button.disabled = false;
+                    buttonText.innerHTML = `
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export to Excel
+                    `;
+                    spinner.classList.add('hidden');
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
