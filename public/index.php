@@ -541,6 +541,16 @@ $statuses = [
                     <input type="hidden" name="sort_by" value="<?php echo htmlspecialchars($sort_by); ?>">
                     <input type="hidden" name="sort" value="<?php echo htmlspecialchars($sort); ?>">
                 </form>
+
+                <div class="flex space-x-2 mb-4">
+                    <button onclick="exportToExcel()" 
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export to Excel
+                    </button>
+                </div>
             </div>
             <!-- DataTable -->
             <div class="bg-white shadow-md rounded my-6 ml-12 mr-12">
@@ -992,6 +1002,15 @@ $statuses = [
                 button.closest('.channel-entry').remove();
             }
         }
+
+        function exportToExcel() {
+            try {
+                window.location.href = 'export_excel.php';
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Error exporting data: ' + error.message);
+            }
+        }   
     </script>
 </body>
 </html>
