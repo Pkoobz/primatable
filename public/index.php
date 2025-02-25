@@ -201,25 +201,35 @@ $statuses = [
                         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                             <form id="bankForm" action="add_bank_ajax.php" method="POST" class="p-6">
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Add New Bank</h3>
+                                <!-- Add these required form fields -->
                                 <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_name">Bank Name</label>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_name">
+                                        Bank Name
+                                    </label>
                                     <input type="text" 
                                         name="bank_name" 
                                         id="bank_name" 
-                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank ID (max 10 digits)</label>
+                                    <input type="text" 
+                                        name="bank_id" 
+                                        id="bank_id" 
+                                        pattern="\d{1,10}"
+                                        maxlength="10"
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         required>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_spec">Bank Spec</label>
-                                    <select name="bank_spec" 
-                                            id="bank_spec" 
-                                            class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                                            required>
+                                    <select name="bank_spec" id="bank_spec" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                                         <option value="">Select Spec</option>
                                         <?php foreach ($specs as $spec): ?>
-                                            <option value="<?php echo $spec['id']; ?>">
-                                                <?php echo htmlspecialchars($spec['name']); ?>
-                                            </option>
+                                        <option value="<?php echo $spec['id']; ?>">
+                                            <?php echo htmlspecialchars($spec['name']); ?>
+                                        </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -243,6 +253,18 @@ $statuses = [
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_name">Biller Name</label>
                                     <input type="text" name="biller_name" id="biller_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_id">Biller ID (max 10 digits)</label>
+                                    <input type="text" 
+                                        name="biller_id" 
+                                        id="biller_id" 
+                                        pattern="\d{1,10}"
+                                        maxlength="10"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10)"
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        required>
+                                    <p class="text-gray-600 text-xs italic">Enter up to 10 digits</p>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_spec">Biller Spec</label>
@@ -532,13 +554,12 @@ $statuses = [
                             Reset Filters
                         </button>
                         <button type="submit" id="filterButton"
-                         class="relative px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center w-32">
-                        <span id="filterButtonText" class="z-10">Apply Filters</span>
-                         <div id="filterSpinner" 
-                           class="absolute inset-0 hidden rounded-md" 
-                             style="background: url('https://cdn.dribbble.com/users/660047/screenshots/2549984/loader-circle3.gif') center center no-repeat; background-color: rgba(37, 99, 235, 0.9); background-size: contain;">
-                                 </div>
-                            </button>
+                            class="relative px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center w-32">
+                            <span id="filterButtonText" class="z-10">Apply Filters</span>
+                                <div id="filterSpinner" 
+                                class="absolute inset-0 hidden rounded-md" 
+                                    style="background: url('https://cdn.dribbble.com/users/660047/screenshots/2549984/loader-circle3.gif') center center no-repeat; background-color: rgba(37, 99, 235, 0.9); background-size: contain;">
+                                </div>
                         </button>
                     </div>
 
@@ -716,7 +737,6 @@ $statuses = [
             </div>  
     </div>
     <script>
-        
         // Add at the bottom of your script section
         const state = {
             selectedBank: null,
@@ -726,26 +746,22 @@ $statuses = [
         };
 
         function toggleModal(modalType) {
-            const modal = document.getElementById(`${modalType.toLowerCase()}Modal`);
+            closeModals();
+            const modalId = `${modalType.toLowerCase()}Modal`;
+            const modal = document.getElementById(modalId);
             if (modal) {
-                closeModals();
-                modal.classList.toggle('hidden');
+                modal.classList.remove('hidden');
             }
         }
 
         function closeModals() {
-            const modals = [
-                'bankModal',
-                'billerModal',
-                'specModal',
-                'channelModal',
-                'connectionModal'
-            ];
-            
-            modals.forEach(modalId => {
+            ['bankModal', 'billerModal', 'specModal', 'channelModal', 'connectionModal'].forEach(modalId => {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('hidden');
+                    // Reset form if exists
+                    const form = modal.querySelector('form');
+                    if (form) form.reset();
                 }
             });
         }
@@ -832,9 +848,6 @@ $statuses = [
                 if (data.success) {
                     closeModals();
                     showNotification('Connection added successfully');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
                 } else {
                     showNotification(data.message || 'Error adding connection', 'error');
                 }
@@ -848,40 +861,46 @@ $statuses = [
         }
 
         document.querySelectorAll('#bankForm, #billerForm, #specForm, #channelForm').forEach(form => {
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                const formId = this.id;
                 const formData = new FormData(this);
                 const submitButton = this.querySelector('button[type="submit"]');
-                submitButton.disabled = true;
+                
+                try {
+                    submitButton.disabled = true;
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                console.log('Submitting form:', this.id);
-                console.log('Form data:', Object.fromEntries(formData));
-
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        showNotification(data.message || 'Added successfully');
-                        closeModals();
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showNotification(data.message || 'Error occurred', 'error');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                })
-                .catch(error => {
+
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        throw new TypeError("Response was not JSON");
+                    }
+
+                    const data = await response.json();
+                    console.log('Response:', data); // Debug log
+
+                    if (data.success) {
+                        await showNotification(data.message || 'Successfully added', 'success');
+                        closeModals();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        await showNotification(data.message || 'Error occurred', 'error');
+                    }
+                } catch (error) {
                     console.error('Error:', error);
-                    showNotification('An error occurred', 'error');
-                })
-                .finally(() => {
+                    await showNotification('An error occurred while processing your request', 'error');
+                } finally {
                     submitButton.disabled = false;
-                });
+                }
             });
         });
 
@@ -908,22 +927,21 @@ $statuses = [
         }
 
         function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const messageElement = document.getElementById('notification-message');
-            
-            // Set message and color
-            messageElement.textContent = message;
-            notification.firstElementChild.className = type === 'success' 
-                ? 'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg'
-                : 'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg';
-            
-            // Show notification
-            notification.classList.remove('hidden');
-            
-            // Hide after 3 seconds
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
+            return new Promise(resolve => {
+                const notification = document.getElementById('notification');
+                const notificationMessage = document.getElementById('notification-message');
+                
+                notification.classList.remove('hidden');
+                notificationMessage.textContent = message;
+                
+                const notificationDiv = notification.querySelector('div');
+                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white`;
+                
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                    resolve();
+                }, 2000);
+            });
         }
 
         function updateQueryStringParameter(key, value) {

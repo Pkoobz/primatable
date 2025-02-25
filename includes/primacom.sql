@@ -40,7 +40,7 @@ INSERT INTO specs (name, created_by) VALUES
 
 CREATE TABLE `banks` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `bank_id` VARCHAR(15) UNIQUE NOT NULL,
+    `bank_id` VARCHAR(10) UNIQUE NOT NULL,
     `name` varchar(255) NOT NULL,
     `spec_id` INT NOT NULL,
     `created_by` INT NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `banks` (
 
 CREATE TABLE `billers` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `biller_id` VARCHAR(15) UNIQUE NOT NULL,
+    `biller_id` VARCHAR(10) UNIQUE NOT NULL,
     `name` varchar(255) NOT NULL,
     `spec_id` INT NOT NULL,
     `created_by` INT NOT NULL,

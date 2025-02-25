@@ -12,6 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $database = new Database();
         $pdo = $database->getConnection();
+
+        if (isset($_POST['channels'])) {
+            $channels = array_filter($_POST['channels'], 'strlen'); // Remove empty values
+            if (count($channels) !== count(array_unique($channels))) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Duplicate channels detected. Each channel can only be added once per connection.'
+                ]);
+                exit;
+            }
+        }
         
         // Start transaction
         $pdo->beginTransaction();
@@ -39,8 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 (prima_data_id, channel_id, date_live, created_by, updated_by) 
                 VALUES (?, ?, ?, ?, ?)");
             
+            $used_channels = [];
+            
             foreach ($_POST['channels'] as $key => $channel_id) {
                 if (!empty($channel_id) && !empty($_POST['channel_dates'][$key])) {
+                    // Check if channel was already added
+                    if (in_array($channel_id, $used_channels)) {
+                        $pdo->rollBack();
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Each channel can only be added once per connection.'
+                        ]);
+                        exit;
+                    }
+                    
                     $stmt->execute([
                         $prima_data_id,
                         $channel_id,
@@ -48,6 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_id'],
                         $_SESSION['user_id']
                     ]);
+                    
+                    $used_channels[] = $channel_id;
                 }
             }
         }
