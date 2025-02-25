@@ -264,7 +264,6 @@ $statuses = [
                                         oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10)"
                                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         required>
-                                    <p class="text-gray-600 text-xs italic">Enter up to 10 digits</p>
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="biller_spec">Biller Spec</label>
@@ -766,9 +765,14 @@ $statuses = [
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('hidden');
-                    // Reset form if exists
                     const form = modal.querySelector('form');
-                    if (form) form.reset();
+                    if (form) {
+                        form.reset();
+                        // Remove any error states
+                        form.querySelectorAll('.border-red-500').forEach(el => {
+                            el.classList.remove('border-red-500');
+                        });
+                    }
                 }
             });
         }
@@ -873,38 +877,45 @@ $statuses = [
                 const formId = this.id;
                 const formData = new FormData(this);
                 const submitButton = this.querySelector('button[type="submit"]');
-                
+
                 try {
                     submitButton.disabled = true;
+                    
+                    // Log the form data being sent
+                    console.log('Submitting form data:', Object.fromEntries(formData));
+
                     const response = await fetch(this.action, {
                         method: 'POST',
                         body: formData
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    // Log the raw response
+                    console.log('Raw response:', response);
 
+                    let data;
                     const contentType = response.headers.get("content-type");
-                    if (!contentType || !contentType.includes("application/json")) {
-                        throw new TypeError("Response was not JSON");
+                    if (contentType && contentType.includes("application/json")) {
+                        data = await response.json();
+                    } else {
+                        throw new TypeError("Expected JSON response but got " + contentType);
                     }
 
-                    const data = await response.json();
-                    console.log('Response:', data); // Debug log
+                    // Log the parsed response data
+                    console.log('Parsed response:', data);
 
                     if (data.success) {
+                        // First show notification
                         await showNotification(data.message || 'Successfully added', 'success');
+                        
+                        // Then close modal
                         closeModals();
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
+                        
+                        // Finally reload after a delay
+                        await new Promise(resolve => setTimeout(resolve));
+                        window.location.reload();
                     } else {
                         await showNotification(data.message || 'Error occurred', 'error');
                     }
-                } catch (error) {
-                    console.error('Error:', error);
-                    await showNotification('An error occurred while processing your request', 'error');
                 } finally {
                     submitButton.disabled = false;
                 }
@@ -938,16 +949,24 @@ $statuses = [
                 const notification = document.getElementById('notification');
                 const notificationMessage = document.getElementById('notification-message');
                 
+                // Clear any existing timeouts
+                if (window.notificationTimeout) {
+                    clearTimeout(window.notificationTimeout);
+                }
+                
                 notification.classList.remove('hidden');
                 notificationMessage.textContent = message;
                 
                 const notificationDiv = notification.querySelector('div');
-                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white`;
+                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg ${
+                    type === 'error' ? 'bg-red-500' : 'bg-green-500'
+                } text-white`;
                 
-                setTimeout(() => {
+                // Set new timeout
+                window.notificationTimeout = setTimeout(() => {
                     notification.classList.add('hidden');
                     resolve();
-                }, 2000);
+                }, 500);
             });
         }
 
