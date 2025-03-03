@@ -23,14 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         }
-        
+
+        $fee_bank = isset($_POST['fee_bank']) && is_numeric($_POST['fee_bank']) ? (float)$_POST['fee_bank'] : 0.00;
+        $fee_biller = isset($_POST['fee_biller']) && is_numeric($_POST['fee_biller']) ? (float)$_POST['fee_biller'] : 0.00;
+        $fee_rintis = isset($_POST['fee_rintis']) && is_numeric($_POST['fee_rintis']) ? (float)$_POST['fee_rintis'] : 0.00;
+        $fee_included = isset($_POST['fee_inclusion']) && $_POST['fee_inclusion'] === 'exclude' ? 0 : 1;
+                
         // Start transaction
         $pdo->beginTransaction();
         
         // Insert prima_data first
         $stmt = $pdo->prepare("INSERT INTO prima_data 
-            (bank_id, biller_id, bank_spec_id, biller_spec_id, status, created_by, updated_by) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)");
+            (bank_id, biller_id, bank_spec_id, biller_spec_id, status, 
+            fee_bank, fee_biller, fee_rintis, fee_included,
+            created_by, updated_by) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
         $stmt->execute([
             $_POST['bank_id'],
@@ -38,6 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['bank_spec_id'],
             $_POST['biller_spec_id'],
             $_POST['status'] ?? 'active',
+            $fee_bank,
+            $fee_biller,
+            $fee_rintis,
+            $fee_included,
             $_SESSION['user_id'],
             $_SESSION['user_id']
         ]);
@@ -83,7 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [
                 'bank_id' => $_POST['bank_id'],
                 'biller_id' => $_POST['biller_id'],
-                'status' => $_POST['status'] ?? 'active'
+                'status' => $_POST['status'] ?? 'active',
+                'fee_bank' => $fee_bank,
+                'fee_biller' => $fee_biller,
+                'fee_rintis' => $fee_rintis,
+                'fee_included' => $fee_included
             ],
             'New connection created'
         );

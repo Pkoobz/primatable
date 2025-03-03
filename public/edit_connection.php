@@ -42,35 +42,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
         
-        // Update status
-        $stmt = $pdo->prepare("UPDATE prima_data SET status = ?, updated_by = ? WHERE id = ?");
-        $stmt->execute([$_POST['status'], $_SESSION['user_id'], $id]);
+        // Get fee values
+        $fee_bank = isset($_POST['fee_bank']) && is_numeric($_POST['fee_bank']) ? (float)$_POST['fee_bank'] : 0.00;
+        $fee_biller = isset($_POST['fee_biller']) && is_numeric($_POST['fee_biller']) ? (float)$_POST['fee_biller'] : 0.00;
+        $fee_rintis = isset($_POST['fee_rintis']) && is_numeric($_POST['fee_rintis']) ? (float)$_POST['fee_rintis'] : 0.00;
+        $fee_included = isset($_POST['fee_inclusion']) && $_POST['fee_inclusion'] === 'exclude' ? 0 : 1;
+        
+        // Update prima_data with status and fees
+        $stmt = $pdo->prepare("
+            UPDATE prima_data 
+            SET status = ?, 
+                fee_bank = ?,
+                fee_biller = ?,
+                fee_rintis = ?,
+                fee_included = ?,
+                updated_by = ? 
+            WHERE id = ?
+        ");
+        $stmt->execute([
+            $_POST['status'],
+            $fee_bank,
+            $fee_biller,
+            $fee_rintis,
+            $fee_included,
+            $_SESSION['user_id'],
+            $id
+        ]);
 
         // Update channels
         $stmt = $pdo->prepare("DELETE FROM connection_channels WHERE prima_data_id = ?");
         $stmt->execute([$id]);
 
-        $channels = $_POST['channels'];
-        $dates = $_POST['channel_dates'];
+        if (isset($_POST['channels']) && isset($_POST['channel_dates'])) {
+            $channels = $_POST['channels'];
+            $dates = $_POST['channel_dates'];
 
-        $stmt = $pdo->prepare("INSERT INTO connection_channels 
-            (prima_data_id, channel_id, date_live, created_by, updated_by) 
-            VALUES (?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("
+                INSERT INTO connection_channels 
+                (prima_data_id, channel_id, date_live, created_by, updated_by) 
+                VALUES (?, ?, ?, ?, ?)
+            ");
 
-        for ($i = 0; $i < count($channels); $i++) {
-            $stmt->execute([
-                $id,
-                $channels[$i],
-                $dates[$i],
-                $_SESSION['user_id'],
-                $_SESSION['user_id']
-            ]);
+            for ($i = 0; $i < count($channels); $i++) {
+                if (!empty($channels[$i]) && !empty($dates[$i])) {
+                    $stmt->execute([
+                        $id,
+                        $channels[$i],
+                        $dates[$i],
+                        $_SESSION['user_id'],
+                        $_SESSION['user_id']
+                    ]);
+                }
+            }
         }
 
-        // Log the update
+        // Log the update with fee information
         log_activity($pdo, 'update', 'prima_data', $id, 
-            ['status' => $connection['status']], 
-            ['status' => $_POST['status']], 
+            [
+                'status' => $connection['status'],
+                'fee_bank' => $connection['fee_bank'],
+                'fee_biller' => $connection['fee_biller'],
+                'fee_rintis' => $connection['fee_rintis'],
+                'fee_included' => $connection['fee_included']
+            ], 
+            [
+                'status' => $_POST['status'],
+                'fee_bank' => $fee_bank,
+                'fee_biller' => $fee_biller,
+                'fee_rintis' => $fee_rintis,
+                'fee_included' => $fee_included
+            ], 
             $_POST['notes'] ?? null
         );
 
@@ -195,6 +236,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </button>
                 </div>
 
+                <div class="mt-6 border-t pt-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Fee Information</h4>
+                    
+                    <!-- Fee Inclusion Radio Buttons -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Fee Status</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="fee_inclusion" value="include" 
+                                    <?php echo $connection['fee_included'] == 1 ? 'checked' : ''; ?>
+                                    class="form-radio text-blue-600">
+                                <span class="ml-2">Include</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="fee_inclusion" value="exclude"
+                                    <?php echo $connection['fee_included'] == 0 ? 'checked' : ''; ?>
+                                    class="form-radio text-blue-600">
+                                <span class="ml-2">Exclude</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Fee Amount Fields -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_bank">
+                                Fee Bank
+                            </label>
+                            <input type="number" 
+                                name="fee_bank" 
+                                id="fee_bank" 
+                                step="0.01" 
+                                min="0" 
+                                value="<?php echo number_format((float)$connection['fee_bank'], 2, '.', ''); ?>"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                oninput="calculateTotalFee()">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_biller">
+                                Fee Biller
+                            </label>
+                            <input type="number" 
+                                name="fee_biller" 
+                                id="fee_biller" 
+                                step="0.01" 
+                                min="0" 
+                                value="<?php echo number_format((float)$connection['fee_biller'], 2, '.', ''); ?>"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                oninput="calculateTotalFee()">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_rintis">
+                                Fee Rintis
+                            </label>
+                            <input type="number" 
+                                name="fee_rintis" 
+                                id="fee_rintis" 
+                                step="0.01" 
+                                min="0" 
+                                value="<?php echo number_format((float)$connection['fee_rintis'], 2, '.', ''); ?>"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                oninput="calculateTotalFee()">
+                        </div>
+                    </div>
+                    
+                    <!-- Total Fee Display -->
+                    <div class="mt-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Total Fee</label>
+                        <div id="total_fee" class="text-xl font-bold text-gray-800 bg-gray-100 p-2 rounded">
+                            <?php 
+                            $total = (float)$connection['fee_bank'] + 
+                                    (float)$connection['fee_biller'] + 
+                                    (float)$connection['fee_rintis'];
+                            echo number_format($total, 2);
+                            ?>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Notes</label>
                     <textarea name="notes" id="notesInput" rows="3" 
@@ -240,7 +360,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         Delete Connection
                     </button>
                     <div class="flex space-x-2">
-                        <a href="index.php" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</a>
+                        <?php
+                        $filter_params = [];
+                        if (isset($_SERVER['HTTP_REFERER'])) {
+                            $referer_parts = parse_url($_SERVER['HTTP_REFERER']);
+                            if (isset($referer_parts['query'])) {
+                                parse_str($referer_parts['query'], $filter_params);
+                            }
+                        }
+                        $cancel_url = 'index.php';
+                        if (!empty($filter_params)) {
+                            $cancel_url .= '?' . http_build_query($filter_params);
+                        }
+                        ?>
+                        <a href="<?php echo htmlspecialchars($cancel_url); ?>" 
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                            Cancel
+                        </a>
                         <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save Changes</button>
                     </div>
                 </div>
@@ -315,6 +451,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 alert('At least one channel is required');
             }
         }
+
+        function calculateTotalFee() {
+            const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
+            const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
+            const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            
+            const totalFee = feeBank + feeBiller + feeRintis;
+            document.getElementById('total_fee').textContent = totalFee.toFixed(2);
+        }
+
+        // Initialize total fee calculation
+        document.addEventListener('DOMContentLoaded', calculateTotalFee);
 
         // Form submission handler
         document.getElementById('editConnectionForm').addEventListener('submit', function(e) {

@@ -428,6 +428,78 @@ $statuses = [
                                         Add Channel
                                     </button>
                                 </div>
+                                <!-- fee information -->
+                                <div class="mt-6 border-t pt-6">
+                                    <h4 class="text-lg font-medium text-gray-900 mb-4">Fee Information</h4>
+                                    
+                                    <!-- Fee Inclusion Radio Buttons -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Fee Status</label>
+                                        <div class="flex space-x-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="fee_inclusion" value="include" checked 
+                                                    class="form-radio text-blue-600">
+                                                <span class="ml-2">Include</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="fee_inclusion" value="exclude" 
+                                                    class="form-radio text-blue-600">
+                                                <span class="ml-2">Exclude</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Fee Amount Fields -->
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_bank">
+                                                Fee Bank
+                                            </label>
+                                            <input type="number" 
+                                                name="fee_bank" 
+                                                id="fee_bank" 
+                                                step="0.01" 
+                                                min="0" 
+                                                value="0.00"
+                                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                oninput="calculateTotalFee()">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_biller">
+                                                Fee Biller
+                                            </label>
+                                            <input type="number" 
+                                                name="fee_biller" 
+                                                id="fee_biller" 
+                                                step="0.01" 
+                                                min="0" 
+                                                value="0.00"
+                                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                oninput="calculateTotalFee()">
+                                        </div>
+                                        <div>
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_rintis">
+                                                Fee Rintis
+                                            </label>
+                                            <input type="number" 
+                                                name="fee_rintis" 
+                                                id="fee_rintis" 
+                                                step="0.01" 
+                                                min="0" 
+                                                value="0.00"
+                                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                                oninput="calculateTotalFee()">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Total Fee Display -->
+                                    <div class="mt-4">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2">Total Fee</label>
+                                        <div id="total_fee" class="text-xl font-bold text-gray-800 bg-gray-100 p-2 rounded">
+                                            0.00
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="mb-4">
                                     <label class="block text-gray-700 text-sm font-bold mb-2" for="status">Status</label>
                                     <select name="status" id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
@@ -984,50 +1056,98 @@ $statuses = [
             document.getElementById('detailsModal').classList.remove('hidden');
 
             fetch(`get_channel_details.php?prima_data_id=${primaDataId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         detailsTitle.textContent = `Connection Details - ${bankName}`;
                         
-                        let contentHtml = `
+                        // Create fee information section
+                        let feeHtml = `
+                            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                                <h3 class="font-medium text-lg mb-3">Fee Information</h3>
+                                <div class="grid grid-cols-2 gap-y-2">
+                                    <div class="text-gray-600">Fee Status:</div>
+                                    <div class="text-right font-medium ${data.fees.fee_included === 'Include' ? 'text-green-600' : 'text-red-600'}">
+                                        ${data.fees.fee_included}
+                                    </div>
+                                    
+                                    <div class="text-gray-600">Fee Bank:</div>
+                                    <div class="text-right font-mono">
+                                        ${data.fees.fee_bank}
+                                    </div>
+                                    
+                                    <div class="text-gray-600">Fee Biller:</div>
+                                    <div class="text-right font-mono">
+                                        ${data.fees.fee_biller}
+                                    </div>
+                                    
+                                    <div class="text-gray-600">Fee Rintis:</div>
+                                    <div class="text-right font-mono">
+                                        ${data.fees.fee_rintis}
+                                    </div>
+                                    
+                                    <div class="text-gray-800 font-medium pt-2 border-t">Total Fee:</div>
+                                    <div class="text-right font-medium font-mono pt-2 border-t">
+                                        ${data.fees.total_fee}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Create channels section
+                        let channelsHtml = `
                             <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-medium text-lg mb-3">Channels</h3>
                                 <div class="text-sm text-gray-500 mb-4">
                                     <span class="font-medium text-gray-700">Active Channels:</span> ${data.channels.length}
                                 </div>
                                 <div class="space-y-3">
                         `;
                         
-                        data.channels.forEach(channel => {
-                            contentHtml += `
-                                <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100 hover:border-blue-200 transition-colors">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                                            <span class="font-medium text-gray-700">${channel.name}</span>
-                                        </div>
-                                        <div class="text-sm">
-                                            <span class="text-gray-400">Live since:</span>
-                                            <span class="text-gray-600 ml-1">${channel.date_live}</span>
+                        if (data.channels.length > 0) {
+                            data.channels.forEach(channel => {
+                                channelsHtml += `
+                                    <div class="bg-white p-3 rounded-md shadow-sm border border-gray-100 hover:border-blue-200 transition-colors">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                                <span class="font-medium text-gray-700">${channel.name}</span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="text-gray-400">Live since:</span>
+                                                <span class="text-gray-600 ml-1">${channel.date_live}</span>
+                                            </div>
                                         </div>
                                     </div>
+                                `;
+                            });
+                        } else {
+                            channelsHtml += `
+                                <div class="text-center text-gray-500 py-4">
+                                    No channels configured
                                 </div>
                             `;
-                        });
+                        }
                         
-                        contentHtml += `</div></div>`;
-                        detailsContent.innerHTML = contentHtml;
+                        channelsHtml += `</div></div>`;
+                        
+                        // Combine both sections
+                        detailsContent.innerHTML = feeHtml + channelsHtml;
                     } else {
-                        detailsContent.innerHTML = '<div class="text-center text-red-500">Error loading details</div>';
+                        detailsContent.innerHTML = `
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <p class="text-red-500 text-center">${data.message || 'Error loading details'}</p>
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    detailsContent.innerHTML = '<div class="text-center text-red-500">Error loading details</div>';
+                    detailsContent.innerHTML = `
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <p class="text-red-500 text-center">Error loading details: ${error.message}</p>
+                        </div>
+                    `;
                 });
         }
 
@@ -1080,6 +1200,29 @@ $statuses = [
                 this.submit(); // Submit the form after delay
             }, 1500); // 1500ms = 1.5 seconds
         });
+
+        // Add this to your existing script section
+        function calculateTotalFee() {
+            const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
+            const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
+            const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            
+            const totalFee = feeBank + feeBiller + feeRintis;
+            document.getElementById('total_fee').textContent = totalFee.toFixed(2);
+        }
+
+        // Add this to your form validation in submitForm function
+        function validateFees() {
+            const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
+            const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
+            const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            
+            if (feeBank < 0 || feeBiller < 0 || feeRintis < 0) {
+                showNotification('Fee amounts cannot be negative', 'error');
+                return false;
+            }
+            return true;
+        }
 
         // Add to your existing script section
         function handleExportClick() {
