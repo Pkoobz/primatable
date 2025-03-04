@@ -144,9 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Connection - <?php echo SITE_NAME; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
+<body style="background-image: url('https://media.giphy.com/media/eIafwZvpxk9sm3P6VH/giphy.gif'); background-repeat: repeat; background-size: cover;">
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+<div class="bg-white rounded-lg shadow-md p-6 mx-auto">
             <h2 class="text-2xl font-bold mb-6">Edit Connection</h2>
             
             <form id="editConnectionForm" method="POST" class="space-y-6">

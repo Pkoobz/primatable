@@ -189,10 +189,8 @@ $statuses = [
             <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
                 Add Connection
             </button>
-            <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                </svg>
+            <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2 ml-2">
+            <img src="https://www.shareicon.net/data/128x128/2015/09/19/642969_options_512x512.png" class="w-4 h-3 mr-2" alt="list icon">
                 View Lists
             </button>
             
