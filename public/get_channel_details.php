@@ -25,6 +25,7 @@ try {
             pd.fee_biller,
             pd.fee_rintis,
             pd.fee_included,
+            pd.admin_fee,
             pd.status
         FROM prima_data pd
         WHERE pd.id = ?
@@ -50,8 +51,9 @@ try {
             'fee_bank' => number_format((float)$feeData['fee_bank'], 2),
             'fee_biller' => number_format((float)$feeData['fee_biller'], 2),
             'fee_rintis' => number_format((float)$feeData['fee_rintis'], 2),
+            'admin_fee' => number_format((float)$feeData['admin_fee'], 2),  
             'fee_included' => $feeData['fee_included'] == 1 ? 'Include' : 'Exclude',
-            'total_fee' => number_format((float)$feeData['fee_bank'] + (float)$feeData['fee_biller'] + (float)$feeData['fee_rintis'], 2)
+            'total_fee' => number_format((float)$feeData['fee_bank'] + (float)$feeData['fee_biller'] + (float)$feeData['fee_rintis'] + (float)$feeData['admin_fee'], 2)
         ]
     ]);
 } catch (Exception $e) {

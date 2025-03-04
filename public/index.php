@@ -29,7 +29,6 @@ $sort_columns = [
     'bank' => 'b.name',
     'biller' => 'bl.name',
     'spec' => 'bs.name',
-    'date_live' => 'pd.date_live',
     'status' => 'pd.status'
 ];
 
@@ -72,8 +71,7 @@ $sql = "SELECT pd.*,
         bs.name as bank_spec_name,
         bls.name as biller_spec_name,
         u.username as created_by_user,
-        pd.status,
-        pd.date_live
+        pd.status
         FROM prima_data pd
         LEFT JOIN banks b ON pd.bank_id = b.id
         LEFT JOIN billers bl ON pd.biller_id = bl.id
@@ -190,6 +188,12 @@ $statuses = [
             </button>
             <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
                 Add Connection
+            </button>
+            <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                </svg>
+                View Lists
             </button>
             
                 <!-- Bank Modal -->
@@ -452,44 +456,31 @@ $statuses = [
                                     <!-- Fee Amount Fields -->
                                     <div class="grid grid-cols-3 gap-4">
                                         <div>
-                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_bank">
-                                                Fee Bank
-                                            </label>
-                                            <input type="number" 
-                                                name="fee_bank" 
-                                                id="fee_bank" 
-                                                step="0.01" 
-                                                min="0" 
-                                                value="0.00"
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_bank">Fee Bank</label>
+                                            <input type="number" name="fee_bank" id="fee_bank" step="0.01" min="0" value="0.00"
                                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                                 oninput="calculateTotalFee()">
                                         </div>
                                         <div>
-                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_biller">
-                                                Fee Biller
-                                            </label>
-                                            <input type="number" 
-                                                name="fee_biller" 
-                                                id="fee_biller" 
-                                                step="0.01" 
-                                                min="0" 
-                                                value="0.00"
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_biller">Fee Biller</label>
+                                            <input type="number" name="fee_biller" id="fee_biller" step="0.01" min="0" value="0.00"
                                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                                 oninput="calculateTotalFee()">
                                         </div>
                                         <div>
-                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_rintis">
-                                                Fee Rintis
-                                            </label>
-                                            <input type="number" 
-                                                name="fee_rintis" 
-                                                id="fee_rintis" 
-                                                step="0.01" 
-                                                min="0" 
-                                                value="0.00"
+                                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fee_rintis">Fee Rintis</label>
+                                            <input type="number" name="fee_rintis" id="fee_rintis" step="0.01" min="0" value="0.00"
                                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                                 oninput="calculateTotalFee()">
                                         </div>
+                                    </div>
+
+                                    <!-- Admin Fee Section -->
+                                    <div id="adminFeeSection" class="mt-4" style="display: none;">
+                                        <label class="block text-gray-700 text-sm font-bold mb-2" for="admin_fee">Admin Fee</label>
+                                        <input type="number" name="admin_fee" id="admin_fee" step="0.01" min="0" value="0.00"
+                                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                            oninput="calculateTotalFee()">
                                     </div>
                                     
                                     <!-- Total Fee Display -->
@@ -512,6 +503,86 @@ $statuses = [
                                     <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Save</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- view list -->
+                <div id="listsModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <div class="flex justify-between mb-4">
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900">Master Lists</h3>
+                                    <button onclick="closeModals()" class="text-gray-400 hover:text-gray-500">
+                                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- Banks List -->
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-2">Banks</h4>
+                                        <div class="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                                            <table class="min-w-full">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">Spec</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200">
+                                                    <?php foreach ($banks as $bank): ?>
+                                                    <tr>
+                                                        <td class="py-2"><?php echo htmlspecialchars($bank['name']); ?></td>
+                                                        <td class="py-2 font-mono"><?php echo htmlspecialchars($bank['bank_id']); ?></td>
+                                                        <td class="py-2"><?php 
+                                                            $stmt = $pdo->prepare("SELECT name FROM specs WHERE id = ?");
+                                                            $stmt->execute([$bank['spec_id']]);
+                                                            $spec = $stmt->fetch(PDO::FETCH_ASSOC);
+                                                            echo htmlspecialchars($spec['name'] ?? 'N/A');
+                                                        ?></td>
+                                                    </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- Billers List -->
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-2">Billers</h4>
+                                        <div class="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                                            <table class="min-w-full">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                                        <th class="text-left text-xs font-medium text-gray-500 uppercase">Spec</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200">
+                                                    <?php foreach ($billers as $biller): ?>
+                                                    <tr>
+                                                        <td class="py-2"><?php echo htmlspecialchars($biller['name']); ?></td>
+                                                        <td class="py-2 font-mono"><?php echo htmlspecialchars($biller['biller_id']); ?></td>
+                                                        <td class="py-2"><?php 
+                                                            $stmt = $pdo->prepare("SELECT name FROM specs WHERE id = ?");
+                                                            $stmt->execute([$biller['spec_id']]);
+                                                            $spec = $stmt->fetch(PDO::FETCH_ASSOC);
+                                                            echo htmlspecialchars($spec['name'] ?? 'N/A');
+                                                        ?></td>
+                                                    </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -833,7 +904,7 @@ $statuses = [
         }
 
         function closeModals() {
-            ['bankModal', 'billerModal', 'specModal', 'channelModal', 'connectionModal'].forEach(modalId => {
+            ['bankModal', 'billerModal', 'specModal', 'channelModal', 'connectionModal', 'listsModal'].forEach(modalId => {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('hidden');
@@ -994,9 +1065,37 @@ $statuses = [
             });
         });
 
-        document.getElementById('connectionForm').addEventListener('submit', function(e) {
+        // Update the connection form submission handler
+        document.getElementById('connectionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            submitForm(this);
+            
+            if (!validateFees()) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showNotification('Connection added successfully', 'success');
+                    closeModals();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Error adding connection', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('An error occurred while saving', 'error');
+            }
         });
 
         // Filter functions
@@ -1084,6 +1183,11 @@ $statuses = [
                                     <div class="text-gray-600">Fee Rintis:</div>
                                     <div class="text-right font-mono">
                                         ${data.fees.fee_rintis}
+                                    </div>
+
+                                    <div class="text-gray-600">Admin Fee:</div>
+                                    <div class="text-right font-mono">
+                                        ${data.fees.admin_fee}
                                     </div>
                                     
                                     <div class="text-gray-800 font-medium pt-2 border-t">Total Fee:</div>
@@ -1174,12 +1278,19 @@ $statuses = [
         }
 
         function exportToExcel() {
-            try {
-                window.location.href = 'export_excel.php';
-            } catch (error) {
-                console.error('Export error:', error);
-                alert('Error exporting data: ' + error.message);
-            }
+            const currentUrl = new URL(window.location.href);
+            const searchParams = currentUrl.searchParams;
+            
+            // Get all current filter values
+            const filterParams = new URLSearchParams();
+            if (searchParams.has('search')) filterParams.append('search', searchParams.get('search'));
+            if (searchParams.has('bank_filter')) filterParams.append('bank_filter', searchParams.get('bank_filter'));
+            if (searchParams.has('biller_filter')) filterParams.append('biller_filter', searchParams.get('biller_filter'));
+            if (searchParams.has('spec_filter')) filterParams.append('spec_filter', searchParams.get('spec_filter'));
+            if (searchParams.has('status_filter')) filterParams.append('status_filter', searchParams.get('status_filter'));
+            
+            // Redirect to export with current filters
+            window.location.href = `export_excel.php?${filterParams.toString()}`;
         }   
         // Add this inside your existing <script> tags
         document.getElementById('filterForm').addEventListener('submit', function(e) {
@@ -1203,22 +1314,67 @@ $statuses = [
 
         // Add this to your existing script section
         function calculateTotalFee() {
+            const feeInclusion = document.querySelector('input[name="fee_inclusion"]:checked').value;
             const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
             const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
             const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            const adminFeeInput = document.getElementById('admin_fee');
             
-            const totalFee = feeBank + feeBiller + feeRintis;
-            document.getElementById('total_fee').textContent = totalFee.toFixed(2);
+            // Calculate subtotal (sum of bank, biller, and rintis fees)
+            const subTotal = feeBank + feeBiller + feeRintis;
+            
+            if (feeInclusion === 'exclude') {
+                // Show admin fee section for manual input
+                document.getElementById('adminFeeSection').style.display = 'block';
+                // Use the manually entered admin fee value
+                const adminFee = parseFloat(adminFeeInput.value) || 0;
+                // Update total with manually entered admin fee
+                const totalFees = subTotal + adminFee;
+                document.getElementById('total_fee').textContent = totalFees.toFixed(2);
+            } else {
+                // When included, hide admin fee section and set to 0
+                document.getElementById('adminFeeSection').style.display = 'none';
+                adminFeeInput.value = '0.00';
+                document.getElementById('total_fee').textContent = subTotal.toFixed(2);
+            }
         }
+
+        // Add event listeners for all fee inputs including admin fee
+        ['fee_bank', 'fee_biller', 'fee_rintis', 'admin_fee'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateTotalFee);
+        });
+
+        // Update fee inclusion radio handler
+        document.querySelectorAll('input[name="fee_inclusion"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const adminFeeSection = document.getElementById('adminFeeSection');
+                if (this.value === 'exclude') {
+                    adminFeeSection.style.display = 'block';
+                } else {
+                    adminFeeSection.style.display = 'none';
+                }
+                calculateTotalFee(); // Recalculate fees when inclusion type changes
+            });
+        });
 
         // Add this to your form validation in submitForm function
         function validateFees() {
+            const feeInclusion = document.querySelector('input[name="fee_inclusion"]:checked').value;
             const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
             const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
             const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            const adminFee = parseFloat(document.getElementById('admin_fee').value) || 0;
             
-            if (feeBank < 0 || feeBiller < 0 || feeRintis < 0) {
+            // Check for negative values
+            if (feeBank < 0 || feeBiller < 0 || feeRintis < 0 || adminFee < 0) {
                 showNotification('Fee amounts cannot be negative', 'error');
+                return false;
+            }
+
+            const subTotal = feeBank + feeBiller + feeRintis;
+
+            if (feeInclusion === 'exclude' && adminFee <= 0) {
+                showNotification('Admin fee is required when fees are excluded', 'error');
                 return false;
             }
             return true;

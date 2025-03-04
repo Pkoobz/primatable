@@ -43,12 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
         
         // Get fee values
+        $fee_included = isset($_POST['fee_inclusion']) && $_POST['fee_inclusion'] === 'exclude' ? 0 : 1;
         $fee_bank = isset($_POST['fee_bank']) && is_numeric($_POST['fee_bank']) ? (float)$_POST['fee_bank'] : 0.00;
         $fee_biller = isset($_POST['fee_biller']) && is_numeric($_POST['fee_biller']) ? (float)$_POST['fee_biller'] : 0.00;
         $fee_rintis = isset($_POST['fee_rintis']) && is_numeric($_POST['fee_rintis']) ? (float)$_POST['fee_rintis'] : 0.00;
-        $fee_included = isset($_POST['fee_inclusion']) && $_POST['fee_inclusion'] === 'exclude' ? 0 : 1;
-        
-        // Update prima_data with status and fees
+        $admin_fee = isset($_POST['admin_fee']) && is_numeric($_POST['admin_fee']) ? (float)$_POST['admin_fee'] : 0.00;
+
+        // If included, force admin fee to 0
+        if ($fee_included) {
+            $admin_fee = 0.00;
+        }
+
+        // Update the SQL query to include admin_fee
         $stmt = $pdo->prepare("
             UPDATE prima_data 
             SET status = ?, 
@@ -56,15 +62,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 fee_biller = ?,
                 fee_rintis = ?,
                 fee_included = ?,
+                admin_fee = ?,
                 updated_by = ? 
             WHERE id = ?
         ");
+
         $stmt->execute([
             $_POST['status'],
             $fee_bank,
             $fee_biller,
             $fee_rintis,
             $fee_included,
+            $admin_fee,
             $_SESSION['user_id'],
             $id
         ]);
@@ -299,6 +308,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 oninput="calculateTotalFee()">
                         </div>
+                        <div id="adminFeeSection" class="mt-4" style="display: <?php echo $connection['fee_included'] == 0 ? 'block' : 'none'; ?>">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="admin_fee">
+                                Admin Fee
+                            </label>
+                            <input type="number" 
+                                name="admin_fee" 
+                                id="admin_fee" 
+                                step="0.01" 
+                                min="0" 
+                                value="<?php echo number_format((float)$connection['admin_fee'], 2, '.', ''); ?>"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                oninput="calculateTotalFee()">
+                        </div>
                     </div>
                     
                     <!-- Total Fee Display -->
@@ -453,13 +475,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         function calculateTotalFee() {
+            const feeInclusion = document.querySelector('input[name="fee_inclusion"]:checked').value;
             const feeBank = parseFloat(document.getElementById('fee_bank').value) || 0;
             const feeBiller = parseFloat(document.getElementById('fee_biller').value) || 0;
             const feeRintis = parseFloat(document.getElementById('fee_rintis').value) || 0;
+            const adminFeeInput = document.getElementById('admin_fee');
             
-            const totalFee = feeBank + feeBiller + feeRintis;
-            document.getElementById('total_fee').textContent = totalFee.toFixed(2);
+            // Calculate subtotal (sum of bank, biller, and rintis fees)
+            const subTotal = feeBank + feeBiller + feeRintis;
+            
+            if (feeInclusion === 'exclude') {
+                // Show admin fee section but don't auto-calculate it
+                document.getElementById('adminFeeSection').style.display = 'block';
+                // Get the manually entered admin fee
+                const adminFee = parseFloat(adminFeeInput.value) || 0;
+                // Total = subtotal + manually entered admin fee
+                const totalFees = subTotal + adminFee;
+                document.getElementById('total_fee').textContent = totalFees.toFixed(2);
+            } else {
+                // When included, hide admin fee section and set to 0
+                document.getElementById('adminFeeSection').style.display = 'none';
+                adminFeeInput.value = '0.00';
+                document.getElementById('total_fee').textContent = subTotal.toFixed(2);
+            }
         }
+
+        ['fee_bank', 'fee_biller', 'fee_rintis', 'admin_fee'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateTotalFee);
+        });
+
+        document.querySelectorAll('input[name="fee_inclusion"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const adminFeeSection = document.getElementById('adminFeeSection');
+                if (this.value === 'exclude') {
+                    adminFeeSection.style.display = 'block';
+                } else {
+                    adminFeeSection.style.display = 'none';
+                    document.getElementById('admin_fee').value = '0.00';
+                }
+                calculateTotalFee();
+            });
+        });
 
         // Initialize total fee calculation
         document.addEventListener('DOMContentLoaded', calculateTotalFee);

@@ -101,12 +101,12 @@ CREATE TABLE `prima_data` (
     `biller_id` BIGINT NOT NULL,
     `bank_spec_id` int(11) NOT NULL,
     `biller_spec_id` int(11) NOT NULL,
-    `date_live` date NOT NULL,
     `status` enum('active','inactive') NOT NULL DEFAULT 'active',
     `fee_bank` DECIMAL(10,2) DEFAULT 0.00,
     `fee_biller` DECIMAL(10,2) DEFAULT 0.00,
     `fee_rintis` DECIMAL(10,2) DEFAULT 0.00,
     `fee_included` TINYINT(1) NOT NULL DEFAULT 1,
+    `admin_fee` DECIMAL(10,2) DEFAULT 0.00,
     `notes` TEXT DEFAULT NULL,
     `created_by` INT NOT NULL,
     `updated_by` INT NOT NULL,
@@ -176,28 +176,32 @@ INSERT INTO billers (biller_id, name, spec_id, created_by) VALUES
 ('123459001', 'Smartfren', 2, 1),
 ('123460001', 'Pertamina', 5, 1);
 
--- Insert 20 prima_data records
-INSERT INTO prima_data (bank_id, biller_id, bank_spec_id, biller_spec_id, date_live, status, created_by, updated_by) VALUES 
-(1, 1, 1, 3, '2024-01-15', 'active', 1, 1),
-(2, 2, 3, 4, '2024-01-20', 'active', 1, 1),
-(3, 3, 4, 1, '2024-01-25', 'active', 1, 1),
-(4, 4, 2, 5, '2024-02-01', 'active', 1, 1),
-(5, 5, 5, 2, '2024-02-05', 'active', 1, 1),
-(6, 6, 3, 3, '2024-02-10', 'active', 1, 1),
-(7, 7, 1, 4, '2024-02-15', 'active', 1, 1),
-(8, 8, 4, 1, '2024-02-20', 'active', 1, 1),
-(9, 9, 2, 2, '2024-02-25', 'active', 1, 1),
-(10, 10, 5, 5, '2024-03-01', 'active', 1, 1),
-(1, 6, 1, 3, '2024-03-05', 'active', 1, 1),
-(2, 7, 3, 4, '2024-03-10', 'active', 1, 1),
-(3, 8, 4, 1, '2024-03-15', 'active', 1, 1),
-(4, 9, 2, 2, '2024-03-20', 'active', 1, 1),
-(5, 10, 5, 5, '2024-03-25', 'active', 1, 1),
-(6, 1, 3, 3, '2024-04-01', 'active', 1, 1),
-(7, 2, 1, 4, '2024-04-05', 'active', 1, 1),
-(8, 3, 4, 1, '2024-04-10', 'inactive', 1, 1),
-(9, 4, 2, 5, '2024-04-15', 'inactive', 1, 1),
-(10, 5, 5, 2, '2024-04-20', 'inactive', 1, 1);
+INSERT INTO prima_data (
+    bank_id, biller_id, bank_spec_id, biller_spec_id, 
+    status, fee_bank, fee_biller, fee_rintis, fee_included, admin_fee,
+    created_by, updated_by
+) VALUES 
+-- First 10 records
+(1, 1, 1, 3, 'active', 2500.00, 1500.00, 1000.00, 1, 0.00, 1, 1),
+(1, 6, 1, 3, 'active', 2000.00, 1500.00, 750.00, 0, 4250.00, 1, 1),
+(2, 7, 3, 4, 'active', 3750.00, 2500.00, 1250.00, 1, 0.00, 1, 1),
+(3, 8, 4, 1, 'active', 1500.00, 1000.00, 500.00, 1, 0.00, 1, 1),
+(4, 9, 2, 2, 'active', 2250.00, 1750.00, 750.00, 0, 4750.00, 1, 1),
+(5, 10, 5, 5, 'active', 4000.00, 2750.00, 1250.00, 1, 0.00, 1, 1),
+(6, 1, 3, 3, 'active', 3000.00, 2000.00, 1000.00, 1, 0.00, 1, 1),
+(7, 2, 1, 4, 'active', 2500.00, 1500.00, 750.00, 0, 4750.00, 1, 1),
+(8, 3, 4, 1, 'inactive', 1750.00, 1250.00, 500.00, 1, 0.00, 1, 1),
+(9, 4, 2, 5, 'inactive', 3250.00, 2250.00, 1000.00, 1, 0.00, 1, 1),
+(10, 5, 5, 2, 'inactive', 2750.00, 1750.00, 750.00, 0, 5250.00, 1, 1),
+(2, 2, 3, 4, 'active', 3000.00, 2000.00, 1500.00, 0, 6500.00, 1, 1),
+(3, 3, 4, 1, 'active', 2000.00, 1000.00, 500.00, 1, 0.00, 1, 1),
+(4, 4, 2, 5, 'active', 4000.00, 2500.00, 1500.00, 0, 8000.00, 1, 1),
+(5, 5, 5, 2, 'active', 1500.00, 1000.00, 500.00, 1, 0.00, 1, 1),
+(6, 6, 3, 3, 'active', 3500.00, 2000.00, 1000.00, 0, 6500.00, 1, 1),
+(7, 7, 1, 4, 'active', 2750.00, 1750.00, 750.00, 1, 0.00, 1, 1),
+(8, 8, 4, 1, 'active', 3250.00, 2250.00, 1250.00, 0, 6750.00, 1, 1),
+(9, 9, 2, 2, 'active', 1750.00, 1250.00, 500.00, 1, 0.00, 1, 1),
+(10, 10, 5, 5, 'active', 4500.00, 3000.00, 1500.00, 0, 9000.00, 1, 1);
 
 -- Fourth, insert channels data
 INSERT INTO channels (name, description, created_by, updated_by) VALUES 
