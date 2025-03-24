@@ -11,7 +11,7 @@ try {
     echo "Connected successfully\n";
     
     // Read SQL file
-    $sql = file_get_contents('primacom.sql');
+    $sql = file_get_contents('Rintis.sql');
     
     // Execute SQL
     $pdo->exec($sql);

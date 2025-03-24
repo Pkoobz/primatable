@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
             <div class="flex items-center ml-0 pl-4">
 
                 <div class="flex ml-12">
-                    <img src=".\assets\images\PT_Rintis.png" alt="Primacom" class="h-16 w-auto">
+                    <img src=".\assets\images\PT_Rintis.png" alt="Rintis" class="h-16 w-auto">
                 </div>
                 <div class="hidden sm:mr-6 sm:flex sm:space-x-8">
                     <a href="index.php" 

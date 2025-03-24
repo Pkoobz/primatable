@@ -1,12 +1,12 @@
 <?php
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'primacom_db');
+define('DB_NAME', 'Rintis_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // Application configuration
-define('SITE_NAME', 'Primacom');
+define('SITE_NAME', 'Rintis Sejahtera');
 define('APP_URL', 'http://localhost/php/primatable'); // Adjust this to your actual URL
 
 // Error reporting

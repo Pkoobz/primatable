@@ -1,10 +1,10 @@
-DROP DATABASE IF EXISTS primacom_db;
+DROP DATABASE IF EXISTS Rintis_db;
 
 -- Create database
-CREATE DATABASE primacom_db;
+CREATE DATABASE Rintis_db;
 
 -- Use the database
-USE primacom_db;
+USE Rintis_db;
 
 -- Create users table
 CREATE TABLE users (
@@ -18,7 +18,7 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (username, email, password, role) VALUES 
-('admin', 'admin@primacom.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+('admin', 'admin@rintis.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
 
 CREATE TABLE `specs` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
