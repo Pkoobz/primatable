@@ -76,7 +76,7 @@ unset($_SESSION['success']);
             <div class="flex flex-col justify-center items-center text-white p-12 h-full space-y-6">
                 <h1 class="text-4xl font-bold text-white drop-shadow-lg">𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐜𝐤</h1>
                 <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                    <img src="https://media.licdn.com/dms/image/C560BAQH8hweK5fShng/company-logo_200_200/0/1630669770737?e=2147483647&v=beta&t=Kd6ENGI7apb4hfpz5iV2IcFcOh-Zittn1b3bJ67eC7w" 
+                    <img src="./assets/images/logo_rintis.png" 
                          alt="Welcome Image" 
                          class="w-full h-full object-cover">
                 </div>
