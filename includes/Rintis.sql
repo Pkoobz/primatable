@@ -40,24 +40,26 @@ INSERT INTO specs (name, created_by) VALUES
 
 CREATE TABLE `banks` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `bank_id` VARCHAR(10) UNIQUE NOT NULL,
+    `bank_id` VARCHAR(10) NOT NULL,
     `name` varchar(255) NOT NULL,
     `spec_id` INT NOT NULL,
     `created_by` INT NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_bank_spec` (`bank_id`, `spec_id`),
     FOREIGN KEY (spec_id) REFERENCES specs(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `billers` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `biller_id` VARCHAR(10) UNIQUE NOT NULL,
+    `biller_id` VARCHAR(10) NOT NULL,
     `name` varchar(255) NOT NULL,
     `spec_id` INT NOT NULL,
     `created_by` INT NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_biller_spec` (`biller_id`, `spec_id`),
     FOREIGN KEY (spec_id) REFERENCES specs(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

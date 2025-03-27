@@ -1012,7 +1012,96 @@ $statuses = [
             return false;
         }
 
-        document.querySelectorAll('#bankForm, #billerForm, #specForm, #channelForm').forEach(form => {
+        // Add these specific form handlers after your existing script tag
+        document.getElementById('bankForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new TypeError("Expected JSON response");
+                }
+
+                const data = await response.json();
+                console.log('Bank form response:', data);
+
+                if (data.success) {
+                    if (data.warning) {
+                        await showNotification(data.warning, 'warning');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                    await showNotification(data.message || 'Bank added successfully', 'success');
+                    closeModals();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    if (data.message.includes('Duplicate entry')) {
+                        await showNotification('This bank ID and spec combination already exists', 'error');
+                    } else {
+                        await showNotification(data.message || 'Error adding bank', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Bank form error:', error);
+                await showNotification('An error occurred while saving', 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        document.getElementById('billerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                console.log('Biller form response:', data);
+
+                if (data.success) {
+                    if (data.warning) {
+                        // Show warning about duplicate ID but continue
+                        await showNotification(data.warning, 'warning');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                    await showNotification(data.message || 'Biller added successfully', 'success');
+                    closeModals();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    await showNotification(data.message || 'Error adding biller', 'error');
+                }
+            } catch (error) {
+                console.error('Biller form error:', error);
+                await showNotification('An error occurred while saving', 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        document.querySelectorAll('#specForm, #channelForm').forEach(form => {
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const formId = this.id;
@@ -1021,48 +1110,47 @@ $statuses = [
 
                 try {
                     submitButton.disabled = true;
-                    
-                    // Log the form data being sent
-                    console.log('Submitting form data:', Object.fromEntries(formData));
 
                     const response = await fetch(this.action, {
                         method: 'POST',
-                        body: formData
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
                     });
 
-                    // Log the raw response
+                    // Log raw response for debugging
                     console.log('Raw response:', response);
 
-                    let data;
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        data = await response.json();
-                    } else {
-                        throw new TypeError("Expected JSON response but got " + contentType);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-                    // Log the parsed response data
-                    console.log('Parsed response:', data);
+                    const data = await response.json();
+                    console.log('Response data:', data);
 
                     if (data.success) {
-                        // First show notification
+                        if (data.warning) {
+                            // Show warning but continue with save
+                            await showNotification(data.warning, 'warning');
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
                         await showNotification(data.message || 'Successfully added', 'success');
-                        
-                        // Then close modal
                         closeModals();
-                        
-                        // Finally reload after a delay
-                        await new Promise(resolve => setTimeout(resolve));
-                        window.location.reload();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
                     } else {
                         await showNotification(data.message || 'Error occurred', 'error');
                     }
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    await showNotification('An error occurred while saving', 'error');
                 } finally {
                     submitButton.disabled = false;
                 }
             });
         });
-
         // Update the connection form submission handler
         document.getElementById('connectionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1116,7 +1204,6 @@ $statuses = [
         function showNotification(message, type = 'success') {
             return new Promise(resolve => {
                 const notification = document.getElementById('notification');
-                const notificationMessage = document.getElementById('notification-message');
                 
                 // Clear any existing timeouts
                 if (window.notificationTimeout) {
@@ -1124,18 +1211,23 @@ $statuses = [
                 }
                 
                 notification.classList.remove('hidden');
-                notificationMessage.textContent = message;
                 
                 const notificationDiv = notification.querySelector('div');
-                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg ${
-                    type === 'error' ? 'bg-red-500' : 'bg-green-500'
-                } text-white`;
+                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg text-white ${
+                    type === 'error' ? 'bg-red-500' : 
+                    type === 'warning' ? 'bg-yellow-500' : 
+                    'bg-green-500'
+                }`;
+
+                notificationDiv.textContent = message;
                 
-                // Set new timeout
+                // Longer display time for warnings
+                const displayTime = type === 'warning' ? 3000 : 2000;
+                
                 window.notificationTimeout = setTimeout(() => {
                     notification.classList.add('hidden');
                     resolve();
-                }, 500);
+                }, displayTime);
             });
         }
 
