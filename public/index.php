@@ -165,6 +165,7 @@ $statuses = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo SITE_NAME; ?> - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="assets/js/delete.js" defer></script>
 </head>
 <body class="bg-gray-100">
     <div id="notification" class="fixed top-4 right-4 z-50 hidden">
@@ -190,8 +191,17 @@ $statuses = [
                 Add Connection
             </button>
             <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2 ml-2">
-            <img src="./assets/images/list.png" class="w-4 h-3 mr-2" alt="list icon">
                 View Lists
+            </button>
+            <!-- After the View Lists button -->
+            <button onclick="toggleDeleteModal('Bank')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                Delete Bank
+            </button>
+            <button onclick="toggleDeleteModal('Biller')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                Delete Biller
+            </button>
+            <button onclick="toggleDeleteModal('Channel')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                Delete Channel
             </button>
             
                 <!-- Bank Modal -->
@@ -584,6 +594,126 @@ $statuses = [
                         </div>
                     </div>
                 </div>
+                <!-- Delete Bank Modal -->
+                <div id="deleteBankModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Delete Bank</h3>
+                                <div class="max-h-60 overflow-y-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php foreach ($banks as $bank): ?>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($bank['name']); ?></td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <button onclick="deleteItem('bank', <?php echo $bank['id']; ?>)" 
+                                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button type="button" onclick="closeModals()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Delete Biller Modal -->
+                <div id="deleteBillerModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Delete Biller</h3>
+                                <div class="max-h-60 overflow-y-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php foreach ($billers as $biller): ?>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($biller['name']); ?></td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <button onclick="deleteItem('biller', <?php echo $biller['id']; ?>)" 
+                                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button type="button" onclick="closeModals()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Delete Channel Modal -->
+                <div id="deleteChannelModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Delete Channel</h3>
+                                <div class="max-h-60 overflow-y-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php
+                                            $stmt = $pdo->query("SELECT id, name FROM channels ORDER BY name");
+                                            $channels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            foreach ($channels as $channel): ?>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($channel['name']); ?></td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <button onclick="deleteItem('channel', <?php echo $channel['id']; ?>)" 
+                                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button type="button" onclick="closeModals()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         <?php endif; ?>
             <!-- details -->
             <div id="detailsModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
@@ -902,20 +1032,8 @@ $statuses = [
         }
 
         function closeModals() {
-            ['bankModal', 'billerModal', 'specModal', 'channelModal', 'connectionModal', 'listsModal'].forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.add('hidden');
-                    const form = modal.querySelector('form');
-                    if (form) {
-                        form.reset();
-                        // Remove any error states
-                        form.querySelectorAll('.border-red-500').forEach(el => {
-                            el.classList.remove('border-red-500');
-                        });
-                    }
-                }
-            });
+            const modals = document.querySelectorAll('[id$="Modal"]');
+            modals.forEach(modal => modal.classList.add('hidden'));
         }
 
         function fetchBankSpecs(bankId) {
@@ -1202,33 +1320,23 @@ $statuses = [
         }
 
         function showNotification(message, type = 'success') {
-            return new Promise(resolve => {
-                const notification = document.getElementById('notification');
-                
-                // Clear any existing timeouts
-                if (window.notificationTimeout) {
-                    clearTimeout(window.notificationTimeout);
-                }
-                
-                notification.classList.remove('hidden');
-                
-                const notificationDiv = notification.querySelector('div');
-                notificationDiv.className = `px-6 py-4 rounded-lg shadow-lg text-white ${
-                    type === 'error' ? 'bg-red-500' : 
-                    type === 'warning' ? 'bg-yellow-500' : 
-                    'bg-green-500'
-                }`;
-
-                notificationDiv.textContent = message;
-                
-                // Longer display time for warnings
-                const displayTime = type === 'warning' ? 3000 : 2000;
-                
-                window.notificationTimeout = setTimeout(() => {
-                    notification.classList.add('hidden');
-                    resolve();
-                }, displayTime);
-            });
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            notification.classList.remove('hidden');
+            notificationMessage.textContent = message;
+            
+            if (type === 'error') {
+                notification.querySelector('div').classList.remove('bg-green-500');
+                notification.querySelector('div').classList.add('bg-red-500');
+            } else {
+                notification.querySelector('div').classList.remove('bg-red-500');
+                notification.querySelector('div').classList.add('bg-green-500');
+            }
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
         }
 
         function updateQueryStringParameter(key, value) {
