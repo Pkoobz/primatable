@@ -85,7 +85,7 @@ unset($_SESSION['success']);
         </div>
 
         <!-- Right side with login form --> 
-        <div class="flex items-center justify-center p-8"style="background-image: url('https://wallpapercave.com/wp/wp3616922.jpg'); background-size: cover;">
+        <div class="flex items-center justify-center p-8"style="background-image: url('./assets/images/cloud.png'); background-size: cover;">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <div class="text-center space-y-4 mb-8">    
                     <h2 class="text-2xl font-bold">Sign in to your account</h2>
