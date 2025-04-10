@@ -225,12 +225,13 @@ $statuses = [
                                         required>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank ID (max 10 digits)</label>
+                                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_id">Bank ID</label>
                                     <input type="text" 
                                         name="bank_id" 
                                         id="bank_id" 
-                                        pattern="\d{1,10}"
-                                        maxlength="10"
+                                        pattern="[0-9-]+"
+                                        maxlength="20"
+                                        oninput="this.value = this.value.replace(/[^0-9-]/g, '')"
                                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         required>
                                 </div>
