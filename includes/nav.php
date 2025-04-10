@@ -23,11 +23,11 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
                                 onclick="toggleDropdown()"
                                 class="flex items-center max-w-xs bg-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
                                 id="user-menu-button">
-                            <img class="h-8 w-8 rounded-full" 
-                                 src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['username']); ?>&background=random" 
-                                 alt="">
+                                <img class="h-8 w-8 rounded-full" 
+                                src='assets/images/default-profile.png'
+                                alt="Profile Picture">
                             <span class="ml-5 text-gray-700"><?php echo htmlspecialchars($_SESSION['username']); ?></span>
-                        </button>
+                            </button>
                         <div id="dropdown-menu" 
                              class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" 
                              role="menu">

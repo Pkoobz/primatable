@@ -84,12 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="border-t border-gray-200">
                 <form method="POST" class="space-y-6 p-8">  <!-- Increased padding from p-6 to p-8 -->
                     <div class="grid grid-cols-1 gap-6 max-w-md mx-auto">  <!-- Added max-w-md and mx-auto -->
-                        <div class="text-center">  <!-- Added text-center -->
+                    <div class="text-center">
                             <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
-                            <div class="mt-2 flex justify-center">  <!-- Added justify-center -->
+                            <div class="mt-2 flex justify-center">
                                 <img class="h-24 w-24 rounded-full border-4 border"
-                                     src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['username']); ?>&size=80&background=random" 
-                                     alt="">
+                                     src='assets\images\default-profile.png'
+                                     alt="Profile Picture">
                             </div>
                         </div>
 
