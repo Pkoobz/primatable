@@ -92,10 +92,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             </div>
         </div>
 
-
         <!-- Right side with registration form -->
         <div class="flex items-center justify-center p-8" 
-             style="background-image: url('https://wallpapercave.com/wp/wp3616922.jpg'); background-size: cover;">
+             style="background-image: url('./assets/images/cloud.png'); background-size: cover;">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <div class="text-center space-y-4 mb-8">    
                     <h2 class="text-2xl font-bold text-gray-800">Create your account</h2>
