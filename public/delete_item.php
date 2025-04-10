@@ -39,6 +39,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $check->execute([$id]);
                 $dependencies = $check->fetchColumn();
                 break;
+
+            case 'spec':
+                // Check if spec is used in banks
+                $check_banks = $pdo->prepare("SELECT COUNT(*) FROM banks WHERE spec_id = ?");
+                $check_banks->execute([$id]);
+                $bank_dependencies = $check_banks->fetchColumn();
+                
+                // Check if spec is used in billers
+                $check_billers = $pdo->prepare("SELECT COUNT(*) FROM billers WHERE spec_id = ?");
+                $check_billers->execute([$id]);
+                $biller_dependencies = $check_billers->fetchColumn();
+                
+                // Check if spec is used in prima_data
+                $check_prima = $pdo->prepare("SELECT COUNT(*) FROM prima_data WHERE bank_spec_id = ? OR biller_spec_id = ?");
+                $check_prima->execute([$id, $id]);
+                $prima_dependencies = $check_prima->fetchColumn();
+                
+                $dependencies = $bank_dependencies + $biller_dependencies + $prima_dependencies;
+                $table = 'specs';
+                
+                // If dependencies exist, provide detailed information
+                if ($dependencies > 0) {
+                    $details = [];
+                    if ($bank_dependencies > 0) {
+                        $details[] = $bank_dependencies . ' bank' . ($bank_dependencies > 1 ? 's' : '');
+                    }
+                    if ($biller_dependencies > 0) {
+                        $details[] = $biller_dependencies . ' biller' . ($biller_dependencies > 1 ? 's' : '');
+                    }
+                    if ($prima_dependencies > 0) {
+                        $details[] = $prima_dependencies . ' connection' . ($prima_dependencies > 1 ? 's' : '');
+                    }
+                    
+                    throw new Exception('Cannot delete spec: It is being used by ' . implode(', ', $details));
+                }
+                break;
                 
             case 'channel':
                 $check = $pdo->prepare("SELECT COUNT(*) FROM connection_channels WHERE channel_id = ?");

@@ -173,36 +173,49 @@ $statuses = [
             <span id="notification-message"></span>
         </div>
     </div>
-    <div class="container mx-auto px-4 py-8 ml-12">
+    <div class="container mx-auto px-4 py-8">
         <?php if ($is_admin): ?>
-            <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="bank">
-                Add Bank
-            </button>
-            <button onclick="toggleModal('Biller')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="biller">
-                Add Biller
-            </button>
-            <button onclick="toggleModal('Spec')" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="spec">
-                Add Spec
-            </button>
-            <button onclick="toggleModal('Channel')" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="channel">
-                Add Channel
-            </button>
-            <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
-                Add Connection
-            </button>
-            <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2 ml-2">
-                View Lists
-            </button>
-            <!-- After the View Lists button -->
-            <button onclick="toggleDeleteModal('Bank')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                Delete Bank
-            </button>
-            <button onclick="toggleDeleteModal('Biller')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                Delete Biller
-            </button>
-            <button onclick="toggleDeleteModal('Channel')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
-                Delete Channel
-            </button>
+            <div class="mb-6 ml-12 mr-12">
+                <!-- Add Operations -->
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Add Items</h3>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button onclick="toggleModal('Bank')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="bank">
+                        Add Bank
+                    </button>
+                    <button onclick="toggleModal('Biller')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="biller">
+                        Add Biller
+                    </button>
+                    <button onclick="toggleModal('Spec')" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="spec">
+                        Add Spec
+                    </button>
+                    <button onclick="toggleModal('Channel')" class="bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2" data-modal="channel">
+                        Add Channel
+                    </button>
+                    <button onclick="toggleModal('Connection')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded inline-flex items-center" data-modal="connection">
+                        Add Connection
+                    </button>
+                    <button onclick="toggleModal('Lists')" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2 ml-2">
+                        View Lists
+                    </button>
+                </div>
+                
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Delete Items</h3>
+                <div class="flex flex-wrap gap-2">
+                    <!-- After the View Lists button -->
+                    <button onclick="toggleDeleteModal('Bank')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                        Delete Bank
+                    </button>
+                    <button onclick="toggleDeleteModal('Biller')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                        Delete Biller
+                    </button>
+                    <button onclick="toggleDeleteModal('Spec')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                        Delete Spec
+                    </button>
+                    <button onclick="toggleDeleteModal('Channel')" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center mr-2">
+                        Delete Channel
+                    </button>
+                </div>
+            </div>
             
                 <!-- Bank Modal -->
                 <div id="bankModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
@@ -657,6 +670,45 @@ $statuses = [
                                                 <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($biller['name']); ?></td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <button onclick="deleteItem('biller', <?php echo $biller['id']; ?>)" 
+                                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <button type="button" onclick="closeModals()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Delete Spec -->
+                <div id="deleteSpecModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+                    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div class="fixed inset-0 transition-opacity modal-backdrop" onclick="closeModals()">
+                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                        </div>
+                        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Delete Spec</h3>
+                                <div class="max-h-60 overflow-y-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php foreach ($specs as $spec): ?>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($spec['name']); ?></td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <button onclick="deleteItem('spec', <?php echo $spec['id']; ?>)" 
                                                             class="text-red-600 hover:text-red-900">Delete</button>
                                                 </td>
                                             </tr>
